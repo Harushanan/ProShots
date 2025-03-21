@@ -1,7 +1,7 @@
 import React from "react";
-import { getFeedbacks } from "./services/feedbackservices";
+import { getFeedbacks } from "../services/feedbackservices";
 
-const ReportForm = () => {
+const Readallfb = () => {
 const [feedbacks, setFeedbacks] = React.useState([]);
   function getfeedbacks() {
     getFeedbacks().then((response) => { 
@@ -17,12 +17,12 @@ const [feedbacks, setFeedbacks] = React.useState([]);
     <div>
       <h1>lol</h1>
       <table border={1}>
-      <th>Id</th><th>name</th><th>subject</th><th>Date</th>
+      <th>Type</th><th>name</th><th>subject</th><th>message</th><th>Date</th>
        {feedbacks.map((feedback) => (
         
       <tr> 
-        <td> feedback </td>
-      <td>{feedback.file}ggf</td>
+        <td>{feedback.reporttype} </td>
+      <td>{feedback.file}</td>
       <td>{feedback.subject}</td>
       <td>{feedback.message}</td>
       <td>{feedback.date}</td>

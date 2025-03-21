@@ -1,11 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import Readallfb from './readallfb'
+import Readallfb from './feedback/Readallfb'
+import Intertfb from './feedback/Insertfb'
+import Deliveryadmin from './delivery/deliveryadmin'
 
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  <StrictMode><>
+    <Intertfb />
     <Readallfb/>
+    <Deliveryadmin/>
+   
+   </>
   </StrictMode>,
 )
