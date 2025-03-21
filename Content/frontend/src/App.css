@@ -1,0 +1,17 @@
+/* Custom toast styles */
+.Toastify__toast-container {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.Toastify__toast {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.custom-toast {
+  background: transparent !important;
+  box-shadow: none !important;
+}
