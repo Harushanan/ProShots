@@ -21,11 +21,13 @@ const [feedbacks, setFeedbacks] = React.useState([]);
        {feedbacks.map((feedback) => (
         
       <tr> 
+        <td> feedback </td>
       <td>{feedback.file}ggf</td>
       <td>{feedback.subject}</td>
       <td>{feedback.message}</td>
       <td>{feedback.date}</td>
       </tr>
+      
       ))} 
       </table>
     </div>
