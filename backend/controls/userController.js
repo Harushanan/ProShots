@@ -6,20 +6,27 @@ const { UserModel, DeletedUserModel ,AdminUserModel } = require('../models/usert
 const loginuser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await UserModel.findOne({ email }); //02
+        const user = await UserModel.findOne({ email }); 
 
         if (!user) {
-            return res.json({ message: "Invalid user" });
+            const admin = await AdminUserModel.findOne({ email });
+            if (!admin) {
+                return res.json({ message: "Invalid user" }); 
+            }
+
+            const isMatchAdmin = await bcrypt.compare(password, admin.password);
+            if (isMatchAdmin) {
+                return res.json({ message: "Successfullogin", role: admin.role, getuser: admin });
+            } else {
+                return res.json({ message: "Invalidcredentials" });
+            }
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (isMatch) {
-            res.json({ message: "Successfullogin" , role: user.role , getuser: user});
-        }
-        
-        else {
-            res.json({ message: "Invalidcredentials" });
+        const isMatchUser = await bcrypt.compare(password, user.password);
+        if (isMatchUser) {
+            return res.json({ message: "Successfullogin", role: user.role, getuser: user });
+        } else {
+            return res.json({ message: "Invalidcredentials" });
         }
     } catch (error) {
         console.error("Login error:", error);
@@ -27,26 +34,92 @@ const loginuser = async (req, res) => {
     }
 };
 
-//--------------- Signup details ------------------- //
+
+//--------------- Signup details ------------------- ///
 const signupuser = async (req, res) => {
     try {
         const { email, password } = req.body;
         const userExists = await UserModel.findOne({ email }); //02
 
-        if (!userExists) {
+
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
             const newUser = await UserModel.create({ ...req.body, password: hashedPassword }); 
             res.json({ message: "UserCreated" });
-        } else {
-            res.json({ message: "EmailAlreadyExists" });
-        }
+        
     } catch (err) {
         console.error("Signup error:", err);
         res.status(400).json({ error: "Error creating user. Please try again." });
     } 
 };
+
+//-------------- checkregister -----------//
+const checkregister = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const userExists = await UserModel.findOne({ email });
+        const deleteuser = await DeletedUserModel.findOne({ email });
+
+        if (userExists) {
+            return res.json({ message: "EmailAlreadyExists" }); 
+        }
+
+        if (deleteuser) {
+            return res.json({ message: "Alreadydeleteuser" });
+        }
+
+        console.log("New user");
+        return res.json({ message: "newuser" });
+
+    } catch (err) {
+        console.error("Signup error:", err);
+        return res.status(400).json({ error: "Error checking user. Please try again." });
+    }
+};
+
+
+const otpStore = {};
+
+// --------- Sent OTP -------//
+
+const SentOTP = (req, res) => {
+    const { email } = req.body;
+    const otp = Math.floor(10000 + Math.random() * 90000); 
+
+    if (!otpStore[email]) {
+        otpStore[email] = {};
+    }
+
+    otpStore[email].otp = otp;
+
+    setTimeout(() => {
+        if (otpStore[email]) { 
+            delete otpStore[email]; 
+        }
+    }, 1000 * 60 * 1);
+
+    console.log("otpStore Object ", otpStore);
+
+    res.json({ otp });
+};
+
+//------------------ Verify OTP -------------//
+const verifyOTP = async (req, res) => {
+    const { email, otp } = req.body;
+    console.log("Data Body Email  :", email);
+    console.log("Data Body OTP  :", otp);
+
+    if (otpStore[email] && otpStore[email].otp == otp) {
+        delete otpStore[email]; 
+        res.json({ message: "OTP Verified" });
+    } else {
+        res.json({ message: "Invalid OTP" });
+    }
+};
+
+
+
 
 //--------------- Forgot password ------------------- //
 const updateuserpw = async (req, res) => {
@@ -236,4 +309,4 @@ const displayadmin = async (req, res) => {
 
 
  
-module.exports = { loginuser, signupuser, updateuserpw, displayuser , deleteuser , displaydeletuser ,addAdmin, displayadmin , deleteaccount , updateprofile};
+module.exports = { loginuser, signupuser, updateuserpw, displayuser , deleteuser , displaydeletuser ,addAdmin, displayadmin , deleteaccount , updateprofile , checkregister , SentOTP , verifyOTP};

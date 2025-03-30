@@ -64,20 +64,7 @@ const ProfileUpdate= () => {
              setError("Profile update failed. Please try again.");
          });
      
-
-
-
-
   }
-
-
-
-
-
-
-
-
-
 
   
   return (<>

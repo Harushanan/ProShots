@@ -54,47 +54,78 @@ const Signup = () => {
       return;
     }
 
-    const toastLoad = toast.loading("Creating Account...");
 
-    setTimeout(() => {
-        toast.dismiss(toastLoad);
-        setOTPVisible(true); // Open OTP modal after successful signup
-        toast.success("OTP Sent! Check your email.");
-    }, 1500);      
+    axios.post("http://localhost:5000/checkregister", { username, email, password, phone, address })
+        .then((result) => {
+            if (result.data.message === "EmailAlreadyExists") {  
+                return setError("Email already exists. Try another email");
+            } 
+
+            else if(result.data.message === "Alreadydeleteuser"){
+              return setError("This email is blocked from re-Signup");
+            }
+
+            else{
+                axios.post("http://localhost:5000/send-otp", { email })
+            .then((res) => {
+                console.log("OTP:", res.data.otp);
+
+                const toastLoad = toast.loading("Creating Account...");
+
+                setTimeout(() => {
+                    toast.dismiss(toastLoad);
+                    setOTPVisible(true); // Open OTP modal after successful signup
+                    toast.success("OTP Sent! Check your email.");}, 1500);      
+
+                //navigate("/otp", { state: { username, email, password, phone, address } });
+            })
+            .catch((err) => {
+                console.error("OTP Error: ", err);
+                setError("Failed to send OTP. Try again.");
+            });
+            }
+            
+        })
+        .catch((err) => {
+            console.error("Signup Error: ", err);
+            setError("Signup failed. Please try again.");
+        });
+
+    
   };
 
 
   const handleOTPSubmit = () => {
-    if (!/^\d{6}$/.test(otp)) {
+    if (!/^\d{5}$/.test(otp)) {
         toast.error("OTP must be 6 digits.");
         return;
     }
 
-    const toastLoadOTP = toast.loading("Verifying OTP...");
+  console.log("I am Enter OTP Is : ", otp)
+  const toastLoadOTP = toast.loading("Verifying OTP...");
 
-    axios
-      .post("http://localhost:5000/register", { username, email, password, phone, address })
-      .then((result) => {
-        setTimeout(() => {
-          if (result.data.message === "EmailAlreadyExists") {
-            setError("Email already exists. Try another email");
-            toast.error("Email already in use");
-            toast.dismiss(toastLoadOTP);
-            setOTPVisible(false);
-          } else if (result.data.message === "UserCreated") {
-            setTimeout(() => {
-                toast.success("OTP Verified! Redirecting...");
-            }, 2000);
-            toast.success("Account Created!");
-            navigate("/auth/login");
-          }
-        }, 1500);
-      })
-      .catch(() => {
-        setError("Signup failed. Please try again.");
-        toast.error("Signup failed. Try again");
-      });
-};
+  axios.post("http://localhost:5000/verify-otp", { email, otp })
+  .then((res) => {
+      if (res.data.message === "OTP Verified") {
+          axios.post("http://localhost:5000/register", { username, email, password, phone, address })
+              .then((res) => {
+
+                  if(res.data.message == "UserCreated")
+                     navigate("/auth/login");
+
+              })
+              .catch(() => setError("Signup failed. Try again."));
+      } 
+      else if(res.data.message === "Invalid OTP")
+      {
+          setError("Invalid OTP. Please try again.");
+      }
+  })
+  .catch(() => setError("OTP verification failed. Try again."));
+  
+  }
+
+
 
   return (
     <div className="h-screen w-screen flex flex-col">
@@ -223,12 +254,8 @@ const Signup = () => {
                                     <InputOTPSlot index={0} />
                                     <InputOTPSlot index={1} />
                                     <InputOTPSlot index={2} />
-                                </InputOTPGroup>
-                                <InputOTPSeparator />
-                                <InputOTPGroup>
                                     <InputOTPSlot index={3} />
                                     <InputOTPSlot index={4} />
-                                    <InputOTPSlot index={5} />
                                 </InputOTPGroup>
                             </InputOTP>
                         </div>

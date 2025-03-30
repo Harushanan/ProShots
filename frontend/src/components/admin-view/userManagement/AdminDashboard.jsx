@@ -100,7 +100,7 @@ function AdminDashboard() {
             </div>
           </nav>
 
-          <h1 className='text-4xl mt-8 mb-8 text-center text-blue-900 underline font-bold'>Deleted Customers</h1>
+          <h1 className='text-4xl mt-8 mb-8 text-center text-blue-900 underline font-bold'>Current Customers</h1>
 
       <div style={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
         
@@ -170,7 +170,7 @@ function AdminDashboard() {
               </td>
               <td>
                 <button style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>
-                  Add Admin
+                  Add
                 </button>
               </td>
             </tr>
