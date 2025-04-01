@@ -102,6 +102,8 @@ const ListForm = () => {
   };
 
   const handleCancelEdit = () => {
+    if (isSubmitting) return;
+    
     setNewProduct({
       name: "",
       sizes: [{ size: "", price: "" }],
@@ -113,24 +115,20 @@ const ListForm = () => {
   };
 
   const validateForm = () => {
-    // Validate product name
     const nameError = validateProductName(newProduct.name);
     if (nameError) {
       toast.error(nameError);
       return false;
     }
 
-    // Validate product image
     const imageError = validateProductImage(newProduct.image);
     if (imageError) {
       toast.error(imageError);
       return false;
     }
 
-    // Validate sizes and prices
     const sizes = newProduct.sizes;
 
-    // Check initial size (only price is required)
     if (sizes.length > 0) {
       const initialSize = sizes[0];
       const priceError = validateProductPrice(initialSize.price);
@@ -140,7 +138,6 @@ const ListForm = () => {
       }
     }
 
-    // Check additional sizes (both size and price are required)
     for (let i = 1; i < sizes.length; i++) {
       const size = sizes[i];
       if (!size.size || (!size.price && size.price !== 0)) {
@@ -154,13 +151,12 @@ const ListForm = () => {
       }
     }
 
-    return true; 
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate the form
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -198,9 +194,6 @@ const ListForm = () => {
         toast.success("Product added successfully!");
       }
 
-      console.log("Product saved:", response.data);
-
-      
       setNewProduct({
         name: "",
         sizes: [{ size: "", price: "" }],
@@ -237,7 +230,7 @@ const ListForm = () => {
       : "Sizes and Prices";
 
   return (
-    <div className="min-h-screen bg-gradient-to-r">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-purple-50">
       <Navbar />
       <div className="flex flex-col items-center p-6">
         <h1 className="text-4xl mt-8 mb-8 text-center text-blue-900 underline font-bold">
@@ -245,7 +238,7 @@ const ListForm = () => {
         </h1>
         <form
           onSubmit={handleSubmit}
-          className="bg-white/60 backdrop-blur-md shadow-lg rounded-lg p-8 w-full max-w-lg border border-white/30"
+          className="bg-white shadow-xl rounded-lg p-8 w-full max-w-lg border border-gray-200"
         >
           {/* Product Name */}
           <div className="mb-6">
@@ -258,7 +251,7 @@ const ListForm = () => {
               value={newProduct.name}
               onChange={handleChange}
               placeholder="Enter product name"
-              className="w-full p-3 border border-black/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/20"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -276,7 +269,7 @@ const ListForm = () => {
                     value={size.price}
                     onChange={(e) => handleSizeChange(e, index)}
                     placeholder="Price"
-                    className="w-full p-3 border border-black/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/20"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 ) : (
                   <>
@@ -286,7 +279,7 @@ const ListForm = () => {
                       value={size.size}
                       onChange={(e) => handleSizeChange(e, index)}
                       placeholder="Size (e.g., small)"
-                      className="w-1/2 p-3 border border-black/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/20"
+                      className="w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                       type="number"
@@ -294,7 +287,7 @@ const ListForm = () => {
                       value={size.price}
                       onChange={(e) => handleSizeChange(e, index)}
                       placeholder="Price"
-                      className="w-1/2 p-3 border border-black/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/20"
+                      className="w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </>
                 )}
@@ -305,6 +298,7 @@ const ListForm = () => {
                     type="button"
                     onClick={() => handleRemoveSize(index)}
                     className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
+                    disabled={isSubmitting}
                   >
                     <FaTrash />
                   </button>
@@ -315,6 +309,7 @@ const ListForm = () => {
               type="button"
               onClick={handleAddSize}
               className="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center gap-2"
+              disabled={isSubmitting}
             >
               <FaPlus /> Add Size and Price
             </button>
@@ -328,7 +323,9 @@ const ListForm = () => {
             <div className="flex items-center gap-3">
               <label
                 htmlFor="imageInput"
-                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                className={`p-3 text-white rounded-lg transition duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                  isSubmitting ? "bg-blue-400" : "bg-blue-500 hover:bg-blue-600"
+                }`}
               >
                 <FaUpload /> Upload Image
               </label>
@@ -339,12 +336,16 @@ const ListForm = () => {
                 className="hidden"
                 accept="image/"
                 ref={fileInputRef}
+                disabled={isSubmitting}
               />
               {imagePreview && (
                 <button
                   type="button"
                   onClick={handleCancelImage}
-                  className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
+                  className={`p-3 text-white rounded-lg transition duration-300 ${
+                    isSubmitting ? "bg-red-400" : "bg-red-500 hover:bg-red-600"
+                  }`}
+                  disabled={isSubmitting}
                 >
                   <FaTimes />
                 </button>
@@ -366,7 +367,11 @@ const ListForm = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 flex items-center justify-center gap-2"
+              className={`w-full p-3 text-white rounded-lg transition duration-300 flex items-center justify-center gap-2 ${
+                isSubmitting
+                  ? "bg-green-600 cursor-wait"
+                  : "bg-green-500 hover:bg-green-600"
+              }`}
             >
               {isSubmitting ? (
                 <FaSpinner className="animate-spin" />
@@ -381,7 +386,12 @@ const ListForm = () => {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300 flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className={`w-full p-3 text-white rounded-lg transition duration-300 flex items-center justify-center gap-2 ${
+                  isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
               >
                 <FaTimes /> Cancel
               </button>
@@ -398,7 +408,6 @@ const ListForm = () => {
         pauseOnHover
         draggable
         limit={3}
-        style={{ zIndex: 9999 }}
       />
     </div>
   );

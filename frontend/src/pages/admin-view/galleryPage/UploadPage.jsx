@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaImage, FaVideo, FaCloudUploadAlt } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { validateVideoSize, validateImageSize } from "@/components/customer-view/GalleryPage/UploadPageValidations";
+import { validateVideoSize, validateImageSize } from "@/pages/admin-view/galleryPage/Validations/UploadPageValidations";
 
 const UploadPage = () => {
   const [imageFile, setImageFile] = useState(null);
