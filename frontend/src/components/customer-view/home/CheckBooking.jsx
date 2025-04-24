@@ -67,4 +67,4 @@ export const CheckBooking = (formDetails) => {
 
 
     return true;
-}; 
+};  

@@ -132,7 +132,7 @@ const ItemList = () => {
   const hasNoResults = searchQuery && filteredItems.length === 0;
 
   return (
-    <div className="min-h-screen bg-gray-200">
+    <div className="min-h-screen">
       {/* Header Section */}
       {location.pathname.includes("/client/products") && (
         <div className="h-[250px] md:h-[450px] bg-[url('@/assets/products.jpg')] bg-cover bg-center"></div>

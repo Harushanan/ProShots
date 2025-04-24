@@ -76,7 +76,7 @@ const AdminFAQPage = () => {
       </Link>
       <Link to="/admin/faq" className="text-white hover:text-gray-200">
           FAQ
-      </Link>
+      </Link> 
       </div>
   </div>
   </nav>

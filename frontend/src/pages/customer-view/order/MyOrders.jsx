@@ -34,7 +34,7 @@ const MyOrders = () => {
   };
  
   return (
-    <div className="p-10 bg-gradient-to-br from-white to-[#e0f7fa] min-h-screen">
+    <div className="p-10 min-h-screen">
       <button onClick={closeBtn} className='absolute top-6 right-6 text-black text-2xl md:text-4xl hover:text-red-500 transition'> ✖ </button>
       <h1 className="text-4xl font-extrabold text-center text-[#0cbdd6] mb-8 drop-shadow">
         My Orders

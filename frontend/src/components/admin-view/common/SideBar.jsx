@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { assets } from "@/assets/assets";
 
 // Optional: React Icons for modern icons
-import { FaBars, FaImages, FaUsers, FaCalendarCheck, FaBlog, FaBoxOpen, FaClipboardList, FaTruck, FaComments } from "react-icons/fa";
+import { FaBars, FaImages, FaUsers, FaCalendarCheck, FaBlog, FaBoxOpen, FaClipboardList, FaTruck, FaComments, FaBox } from "react-icons/fa";
 
 const SideBar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -76,6 +76,7 @@ const SideBar = () => {
             <SidebarItem icon={<FaUsers />} text="User Management" to="/admin/dashboard" setIsOpen={setIsOpen} />
             <SidebarItem icon={<FaCalendarCheck />} text="Bookings Management" to="/admin/EventBookings" setIsOpen={setIsOpen} />
             <SidebarItem icon={<FaBlog />} text="Blog Management" to="/admin/oldEventUpload" setIsOpen={setIsOpen} />
+            <SidebarItem icon={<FaBox />} text="Package Management" to="/admin/newPackages" setIsOpen={setIsOpen} />
             <SidebarItem icon={<FaBoxOpen />} text="Inventory Management" to="/admin/create-product" setIsOpen={setIsOpen} />
             <SidebarItem icon={<FaClipboardList />} text="Order Management" to="/admin/placedOrders" setIsOpen={setIsOpen} />
             <SidebarItem icon={<FaTruck />} text="Delivery Management" to="/admin/delivery" setIsOpen={setIsOpen} />

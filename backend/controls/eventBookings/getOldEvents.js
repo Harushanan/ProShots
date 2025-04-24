@@ -9,7 +9,7 @@ const getOldEvents = async(req, res) => {
             success: true,
             data: oldEvents
         })
-    } catch (error) {
+    } catch (error) { 
         console.log(error);
         res.status(500).json({
             success: false,

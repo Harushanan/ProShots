@@ -9,7 +9,7 @@ const ClientLayout = () => {
   
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden bg-gradient-to-br bg-[#e0f7fa]">
         { !location.pathname.startsWith('/client/DisplayOldFullEvent/') && 
             <header className="absolute z-10 w-full bg-black/50 backdrop-blur-sm">
             <ClientHeader />

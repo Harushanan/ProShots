@@ -73,7 +73,7 @@ const OGcart = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 lg:p-12 bg-gray-200 min-h-screen">
+    <div className="container mx-auto p-6 lg:p-12 min-h-screen">
       <button onClick={handleChange} className='absolute top-6 right-6 text-black text-2xl md:text-4xl hover:text-red-500 transition'> ✖ </button> 
       <h1 className="text-3xl font-bold text-blue-900 underline mb-8 text-center">Your Cart</h1>
       <ToastContainer />

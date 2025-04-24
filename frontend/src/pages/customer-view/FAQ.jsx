@@ -30,7 +30,7 @@ const ClientFAQ = () => {
   };
 
   const submitQuestion = async () => {
-    if(answer.length<15){
+    if(question.length<15){
       window.alert("Question must Be 15 Characters")
       return;
     }
@@ -50,7 +50,7 @@ const ClientFAQ = () => {
   };
 
   const handleNavigate = () => {
-      navigate('/client/contact')
+    navigate(-1);
   }
 
   return (
@@ -95,7 +95,7 @@ const ClientFAQ = () => {
           <button
             onClick={submitQuestion}
             className={`p-2 rounded-md border-none text-white mt-10 ${question.trim() ? 'bg-blue-500 cursor-pointer' : 'bg-blue-400 cursor-not-allowed'}`}
-            disabled={!question.trim()}
+            disabled={!question.trim()} 
           >
             Submit
           </button>

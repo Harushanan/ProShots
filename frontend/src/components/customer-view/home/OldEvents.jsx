@@ -19,7 +19,7 @@ const OldEvents = () => {
     useEffect(() => {
         const fetchOldEvents = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/getOldEvents", {
+                const res = await fetch('http://localhost:5000/api/getOldEvents', {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",

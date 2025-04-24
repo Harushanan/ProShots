@@ -4,6 +4,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Cookies from 'js-cookie';
+import * as Tabs from "@radix-ui/react-tabs";
+
 
 
 const getTodayDate = () => {
@@ -19,15 +21,44 @@ function BookingForm() {
     const [isOpen, setIsOpen] = useState(false);
     const todayDate = getTodayDate(); 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPersonalFields, setShowPersonalFields] = useState(false);
+    const [userFullName, setUserFullName] = useState(null);
+    const [userPhoneNumber, setUserPhoneNumber] = useState(null);
+    const [userAddress, setUserAddress] = useState(null);
+    const [activeTab, setActiveTab] = useState("defaultBooking");
+
+
+    useEffect(() => {
+
+    }, [])
+
+    useEffect(() => {
+        const userData = Cookies.get('user');
+        const user = userData ? JSON.parse(userData) : null;
+        const userFullName = user && user.user ? user.user.username : null;
+        const userPhoneNumber = user && user.user ? user.user.phone : null;
+        const userAddress = user && user.user ? user.user.address : null;
+        if (activeTab === "defaultBooking") {
+            setFormDetails(prev => ({
+                ...prev,
+                clientName: userFullName || '',
+                phoneNumber: userPhoneNumber || '',
+                address: userAddress || ''
+            }));
+        }
+    }, [activeTab, isOpen]);
 
     const onSubmit = async (e) => {
         e.preventDefault();
         
-        setIsSubmitting(true);
+        setIsSubmitting(true); 
 
         const userData = Cookies.get('user');
         const user = userData ? JSON.parse(userData) : null;
         const userEmails = user && user.user ? user.user.email : null;
+        const userFullName = user && user.user ? user.user.username : null;
+        const userPhoneNumber = user && user.user ? user.user.phone : null;
+        const userAddress = user && user.user ? user.user.address : null;
     
         const formDetailsWithEmail = { ...formDetails, userEmail: userEmails };
 
@@ -115,9 +146,6 @@ function BookingForm() {
 
     const isFormComplete = () => {
         return (
-            formDetails.clientName.trim() !== '' &&
-            formDetails.phoneNumber !== 0 &&
-            formDetails.address.trim() !== '' &&
             formDetails.eventType.trim() !== '' &&
             formDetails.eventDate.trim() !== '' &&
             formDetails.location.trim() !== '' &&
@@ -128,6 +156,10 @@ function BookingForm() {
         );
     };
     
+    const openModal = (withPersonalFields = false) => {
+        setShowPersonalFields(withPersonalFields);
+        setIsOpen(true);
+    };
 
     
 
@@ -188,30 +220,42 @@ function BookingForm() {
                                 Book Photography Service
                             </h2>
 
-                            <form onSubmit={onSubmit} className='space-y-4'>
-                                <input className='w-full p-2 border rounded-lg' 
-                                    onChange={(e) => {setFormDetails({...formDetails, clientName: e.target.value})}} 
-                                    type='text' 
-                                    name= 'clientName' 
-                                    placeholder='Enter Full Name' 
-                                    required 
-                                />
-                                
-                                <input className='w-full p-2 border rounded-lg' 
-                                    onChange={(e) => {setFormDetails({...formDetails, phoneNumber: e.target.value})}} 
-                                    type='text'
-                                    name= 'phoneNumber'
-                                    placeholder='Enter Contact Number' 
-                                    required 
-                                />
-                                
-                                <input className='w-full p-2 border rounded-lg' 
-                                    onChange={(e) => {setFormDetails({...formDetails, address: e.target.value})}} 
-                                    type='text' 
-                                    name= 'address'
-                                    placeholder='Enter Address' 
-                                    required 
-                                />
+                          <form onSubmit={onSubmit} className='space-y-4'>
+                              <Tabs.Root defaultValue="defaultBooking" value={activeTab} onValueChange={setActiveTab}>
+                                <Tabs.List className="flex gap-2 mb-4 justify-center text-white">
+                                    <Tabs.Trigger value="defaultBooking" className="px-4 py-2 rounded-lg bg-gray-700 data-[state=active]:bg-blue-600 mb-4">
+                                        Book For You
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="customClient" className="px-4 py-2 rounded-lg bg-gray-700 data-[state=active]:bg-blue-600 mb-4">
+                                        Book For Someone
+                                    </Tabs.Trigger>
+                                </Tabs.List>
+                                <Tabs.Content value="customClient" className="w-full space-y-4">
+                                    <input className='w-full p-2 border rounded-lg' 
+                                        onChange={(e) => {setFormDetails({...formDetails, clientName: e.target.value})}} 
+                                        type='text' 
+                                        name= 'clientName' 
+                                        placeholder='Enter Full Name' 
+                                        required 
+                                    />
+                                    
+                                    <input className='w-full p-2 border rounded-lg' 
+                                        onChange={(e) => {setFormDetails({...formDetails, phoneNumber: e.target.value})}} 
+                                        type='text'
+                                        name= 'phoneNumber'
+                                        placeholder='Enter Contact Number' 
+                                        required 
+                                    />
+                                    
+                                    <input className='w-full p-2 border rounded-lg' 
+                                        onChange={(e) => {setFormDetails({...formDetails, address: e.target.value})}} 
+                                        type='text' 
+                                        name= 'address'
+                                        placeholder='Enter Address' 
+                                        required 
+                                    />
+                                </Tabs.Content>
+                                </Tabs.Root>
 
                                 <div className='w-full grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                     <div className='flex flex-col'>
@@ -358,4 +402,4 @@ function BookingForm() {
         );
 }
 
-export default BookingForm;
+export default BookingForm; 
