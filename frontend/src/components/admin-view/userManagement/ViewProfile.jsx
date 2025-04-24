@@ -71,54 +71,6 @@ const Profile = () => {
           <button onClick={() => deleteAccount(myemail)} className="delete-button">Delete Account</button>
           <button className="change-password-button">Change Password</button>
         </div> 
-
-        <div className="orders-container">
-          <h1>Customer Orders & Photography Bookings</h1>
-          
-          <h2>Orders</h2>
-          <div className="table-wrapper">
-            <table className="styled-table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>OD1001</td>
-                  <td>Custom Mug</td>
-                  <td>$15.99</td>
-                  <td>Shipped</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h2>Event Photography</h2>
-          <div className="table-wrapper">
-            <table className="styled-table">
-              <thead>
-                <tr>
-                  <th>Photography ID</th>
-                  <th>Event</th>
-                  <th>Price</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>EB1001</td>
-                  <td>Birthday</td>
-                  <td>$50.00</td>
-                  <td>2025/12/25</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </div>
   );

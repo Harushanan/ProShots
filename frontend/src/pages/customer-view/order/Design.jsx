@@ -71,7 +71,7 @@ const Design = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 px-6">
+    <div className="flex flex-col items-center justify-center min-h-screen px-6">
         <div className="bg-white shadow-2xl rounded-3xl p-8 max-w-2xl w-full text-center transition-all duration-300 hover:shadow-md">
             <button onClick={handleChange} className='absolute top-6 right-6 text-black text-2xl md:text-4xl hover:text-red-500 transition'> ✖ </button> 
             <ToastContainer />

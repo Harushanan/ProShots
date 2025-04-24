@@ -24,6 +24,16 @@
   z-index: 1;
 }
 
+/* Scrollbar Hide Utility (if Tailwind plugin not available) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
 @property --angle{
   syntax: "<angle>";
   initial-value: 0deg;

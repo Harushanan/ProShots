@@ -110,7 +110,7 @@ const OldEventUpload = () => {
     return (
         <div className="flex items-center justify-center mt-5">
             <div className="relative z-0 cardShape rounded-xl w-9/12">
-            <div className="bg-white/85 h-auto p-7 rounded-2xl">
+            <div className="bg-white h-auto p-7 rounded-2xl">
             <ToastContainer
                     position="top-center"
                     autoClose={3000}
@@ -124,7 +124,7 @@ const OldEventUpload = () => {
                     <input 
                         type="text" 
                         name="clientName"
-                        className="p-4 rounded-lg border-black text-black flex w-11/12 m-5" 
+                        className="p-4 rounded-lg border-blue-200 border-[2px] text-black flex w-11/12 m-5 bg-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-400" 
                         placeholder="Enter the Client Name"
                         onChange={(e) => setFormDetails({...formDetails, clientName: e.target.value })}
                         value={formDetails.clientName}
@@ -133,7 +133,7 @@ const OldEventUpload = () => {
                     <input 
                         type="text" 
                         name="place"
-                        className="p-4 rounded-lg border-black text-black flex w-11/12 m-5" 
+                        className="p-4 rounded-lg border-blue-200 border-[2px] text-black flex w-11/12 m-5 bg-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-400" 
                         placeholder="Enter the event place"
                         onChange={(e) => setFormDetails({...formDetails, place: e.target.value })}
                         value={formDetails.place}
@@ -143,7 +143,7 @@ const OldEventUpload = () => {
                     <textarea 
                         type="text" 
                         name="description"
-                        className="p-4 rounded-lg border-black text-black flex w-11/12 m-5" 
+                        className="p-4 rounded-lg border-blue-200 border-[2px] text-black flex w-11/12 m-5 bg-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-400" 
                         placeholder="Enter the description"
                         onChange={(e) => {
                             setFormDetails({ ...formDetails, description: e.target.value });
@@ -154,7 +154,7 @@ const OldEventUpload = () => {
 
                     <div className='w-full grid grid-cols-1 sm:grid-cols-2 gap-4 ml-5'>
                         <div className='flex flex-col'>
-                            <select className='w-full p-2 border rounded-lg' 
+                            <select className='w-full p-3 rounded-lg border-blue-200 border-[2px] text-black m-5 bg-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-400' 
                                 onChange={(e)=> {setFormDetails({...formDetails, eventType: e.target.value})}} 
                                 name= 'eventType'
                                 value={formDetails.eventType}

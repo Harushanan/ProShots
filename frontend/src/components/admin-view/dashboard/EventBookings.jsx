@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 const EventBookings = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedBooking, setSelectedBooking] = useState(null); // Track selected booking
-    const [confirmAction, setConfirmAction] = useState(null); // Track action to confirm
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [confirmAction, setConfirmAction] = useState(null);
     const [sortOrder, setSortOrder] = useState("default");
     const [sortedBookings, setSortedBookings] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [upcomingBookings, setUpcomingBookings] = useState([]);
+    const [matchEvent, setMatchEvent] = useState([]);
+    const [matchEventDisplay, setMatchEventDisplay] = useState([]);
 
     const handleSearch = (e) => {
         setSearchQuery(e.target.value);
@@ -91,6 +94,17 @@ const EventBookings = () => {
                 setSortedBookings(prev => prev.filter(book => book._id !== id));
                 setBookings(prev => prev.filter(book => book._id !== id));
                 setSelectedBooking(null);
+                setUpcomingBookings(prev => [
+                    ...prev,
+                    {
+                        _id: id,
+                        clientName,
+                        email,
+                        eventDate: eDate,
+                        eventType: eType,
+                        location,
+                    }
+                ]);
             } else {
                 toast.error("Unable to update");
             }
@@ -100,6 +114,25 @@ const EventBookings = () => {
             setIsProcessing(false);
         });
     };
+
+    useEffect(() => {
+        if (confirmAction) {
+            var matchDisplay = "";
+            setMatchEventDisplay([]);
+            setMatchEvent([]);
+            const matched = upcomingBookings.filter(event => 
+                new Date(event.eventDate).toISOString().split("T")[0] === 
+                new Date(confirmAction.eDate).toISOString().split("T")[0]
+            );
+    
+            if (matched.length > 0) {
+                matchDisplay = matched.map(event =>
+                    `<p>${event.clientName}'s ${event.eventType} booking.</p>`
+                );
+                setMatchEventDisplay((prev) => matchDisplay)
+            }
+        }
+    }, [confirmAction, upcomingBookings]);
 
     useEffect(() => {
         fetch('http://localhost:5000/api/getbookings', {
@@ -113,6 +146,16 @@ const EventBookings = () => {
         .catch(() => toast.error("Failed to fetch bookings"))
         .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        fetch("http://localhost:5000/api/getUpcomingBookings", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        })
+          .then((response) => response.json())
+          .then((data) => setUpcomingBookings(data || []))
+          .catch(() => toast.error("Failed to fetch upcoming bookings"));
+      }, []);
  
     if (loading) {
         return <h1 className="text-center text-green-800 p-10 border-black border-4 m-10 text-4xl">Loading...</h1>;
@@ -198,7 +241,7 @@ const EventBookings = () => {
                                                     {selectedBooking.clientName}'s Booking
                                                   </DialogTitle>
                                                 </DialogHeader>
-                                              
+
                                                 {/* Client Information Box */}
                                                 <div className="bg-white rounded-xl shadow p-4 space-y-1 border border-gray-200">
                                                   <h3 className="text-lg font-semibold mb-2 text-blue-600">Client Information</h3>
@@ -211,7 +254,7 @@ const EventBookings = () => {
                                                 <div className="bg-white rounded-xl shadow p-4 space-y-1 border border-gray-200">
                                                   <h3 className="text-lg font-semibold mb-2 text-green-600">Event Details</h3>
                                                   <p><strong>Type:</strong> {selectedBooking.eventType}</p>
-                                                  <p><strong>Date:</strong> {selectedBooking.eventDate}</p>
+                                                  <p><strong>Date:</strong> {formattedDate}</p>
                                                   <p><strong>Location:</strong> {selectedBooking.location}</p>
                                                   <p><strong>Duration:</strong> {selectedBooking.duration}</p>
                                                 </div>
@@ -269,14 +312,24 @@ const EventBookings = () => {
                 <Dialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
                     <DialogContent className="w-[400px] bg-white rounded-xl shadow-2xl border border-gray-200">
                         <DialogHeader>
-                            <DialogTitle className="text-lg font-semibold text-gray-900">
+                            <DialogTitle className="text-lg ps-5 font-semibold text-gray-900">
                                 {confirmAction.type === "accept"
                                     ? `Confirm Acceptance`
                                     : `Confirm Rejection`}
                             </DialogTitle>
                         </DialogHeader>
-                        <div className="p-5 text-gray-700">
-                            <p>
+                        <div className="p-5 pt-0 text-gray-700">
+                        {matchEventDisplay.length > 0 && (
+                            <div className="bg-yellow-100 text-yellow-800 p-3 rounded-md border border-yellow-300">
+                                <p className="font-medium"><strong className="font-bold text-lg">Warning:<br/></strong> There are existing bookings on this date!</p>
+                                <div className="pt-2">
+                                    {matchEventDisplay.map((msg, index) => (
+                                        <p className="text-red-700 font-medium" key={index} dangerouslySetInnerHTML={{ __html: msg }} />
+                                    ))}
+                                </div>
+                                </div>
+                        )}
+                            <p className="pt-4">
                                 Are you sure you want to{" "}
                                 <strong className={confirmAction.type === "accept" ? "text-green-600" : "text-red-600"}>
                                     {confirmAction.type}

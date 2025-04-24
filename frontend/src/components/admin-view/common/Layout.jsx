@@ -68,6 +68,16 @@ const AdminLayout = () => {
                     )  
                 }
 
+                {
+                    (location.pathname.includes('/admin/oldEventDelete') ||
+                    location.pathname.includes('/admin/product-list')) &&
+                    (
+                        <div className="absolute inset-0 before:content-[''] before:absolute before:inset-0 before:bg-[url('/adminSideAllBG.jfif')] before:bg-cover before:bg-center before:animate-zoom-bg before:scale-110 before:z-0">
+                        <div className="relative z-10 mb-10 px-6 py-4 bg-white/5 backdrop-blur-sm rounded-2xl shadow-lg w-full h-full"></div>
+                        </div>
+                    )  
+                }
+
                 {/* Your content above background */}
                 <main className="relative z-10 mb-10 min-h-screen">
                     <Outlet />

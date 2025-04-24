@@ -44,6 +44,11 @@ import AdminDeliveryPage from "./pages/admin-view/AdminDeliveryPage";
 import FeedbackList from "./pages/admin-view/customer-relationship/Feedbacks";
 import ClientFAQ from "./pages/customer-view/FAQ";
 import AdminFAQPage from "./pages/admin-view/customer-relationship/FAQ";
+import AddPackages from "./components/admin-view/dashboard/AddPackages";
+import Packages from "./components/customer-view/home/Packages";
+import DeletePackages from "./components/admin-view/dashboard/deletePackages";
+import MyBookings from "./components/customer-view/home/MyBookings";
+import ColorSetUp from "./components/customer-view/common/ColorSetUp";
 
 
 function App() {
@@ -65,20 +70,24 @@ function App() {
                     <Route path='blog' element={<Blog />} />
                     <Route path='products' element={<ItemList />} />
                     <Route path='contact' element={<FeedBack />} />
+                    <Route path='package' element={<Packages />} />
                 </Route>
-                <Route path='/client/DisplayOldFullEvent/:id' element={<DisplayOldFullEvent />} />
-                <Route path="/client/cart" element={<OGcart />} /> 
-                <Route path="/client/design" element={<Design />} />
-                <Route path="/client/terms" element={<Terms />} />
-                <Route path="/client/payment" element={<Payment />} />
-                <Route path="/client/preview-order" element={<PreviewOrder />} />
-                <Route path="/client/my-orders" element={<MyOrders />} />
-                <Route path="/client/detailedMyOrders/:id" element={<DetailedMyOrders />} />
-                <Route path="/client/profile" element={<Profile />} />
-                <Route path="/client/feedback" element={<FeedBack />} />
-                <Route path="/client/updateprofile" element={<ProfileUpdate />} />
-                <Route path="/client/faq" element={<ClientFAQ />} />
-                <Route path="/client/delivery" element={<DeliveryMethodPage />} />
+                <Route path='/client' element={<ColorSetUp />}>
+                    <Route path='/client/DisplayOldFullEvent/:id' element={<DisplayOldFullEvent />} />
+                    <Route path="/client/cart" element={<OGcart />} /> 
+                    <Route path="/client/design" element={<Design />} />
+                    <Route path="/client/terms" element={<Terms />} />
+                    <Route path="/client/payment" element={<Payment />} />
+                    <Route path="/client/preview-order" element={<PreviewOrder />} />
+                    <Route path="/client/my-orders" element={<MyOrders />} />
+                    <Route path="/client/detailedMyOrders/:id" element={<DetailedMyOrders />} />
+                    <Route path="/client/profile" element={<Profile />} />
+                    <Route path="/client/feedback" element={<FeedBack />} />
+                    <Route path="/client/updateprofile" element={<ProfileUpdate />} />
+                    <Route path="/client/faq" element={<ClientFAQ />} />
+                    <Route path="/client/delivery" element={<DeliveryMethodPage />} />
+                    <Route path="/client/myBookings" element={<MyBookings />} /> 
+                </Route>
                 
 
  
@@ -94,6 +103,10 @@ function App() {
                     {/*  Booking Management Routes  */}
                     <Route path="upcomingEvents" element={<UpComingEvent />} />
                     <Route path="eventBookings" element={<EventBooking />} />
+
+                    {/* Package Management Routes */}
+                    <Route path="newPackages" element={<AddPackages />} />
+                    <Route path="deletePackages" element={<DeletePackages />} />
 
 
                     {/*  User Management Routes  */}

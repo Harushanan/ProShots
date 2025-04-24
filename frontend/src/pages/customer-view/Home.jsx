@@ -2,6 +2,7 @@ import GalleryPage from '@/components/customer-view/GalleryPage/GalleryPage';
 import AboutStudio from '@/components/customer-view/home/AboutStudio';
 import BookingForm from '@/components/customer-view/home/BookingForm'
 import OldEvents from '@/components/customer-view/home/OldEvents';
+import Packages from '@/components/customer-view/home/Packages';
 import SlideBar from '@/components/customer-view/home/SlideBar';
 import React from 'react'
 
@@ -40,6 +41,12 @@ const Home = () => {
                 ✨ Recent Events ✨
             </h1>
             <OldEvents />
+
+
+            <h1 className="text-center text-2xl md:text-4xl font-extrabold text-gray-800 mt-32 mb-5 uppercase tracking-wide">
+                ✨ Available Packages ✨
+            </h1>
+            <Packages />
         </div>
     );
 }

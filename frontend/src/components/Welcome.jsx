@@ -50,7 +50,7 @@ const WelcomePage = () => {
                 }}
             >
 
-                <h1 id="heading1" className='font-semibold text-5xl md:text-9xl lg:text-[120px] mb-12'><i>ProShots Creation</i></h1>
+                <h1 id="heading1" className='font-semibold text-5xl md:text-7xl lg:text-[120px] mb-12'><i>ProShots Creation</i></h1>
 
                 <h1 style={{ fontSize: '2.5em', textShadow: '2px 2px 10px rgba(0,0,0,0.5)' }}>
                     Capture Your Moments with Us

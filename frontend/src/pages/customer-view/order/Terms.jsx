@@ -19,7 +19,7 @@ const Terms = () => {
   };
 
   return (
-    <div className="p-10 text-center min-h-screen bg-gradient-to-br from-white to-[#e6f9ff]">
+    <div className="p-10 text-center min-h-screen">
       <button onClick={handleChange} className='absolute top-6 right-6 text-black text-2xl md:text-4xl hover:text-red-500 transition'> ✖ </button> 
       <ToastContainer />
       
