@@ -6,12 +6,23 @@ import axios from "axios";
 import loginbackground from "../../../assets/loginlogo.png";
 import logo from "../../../assets/Logo.png";
 
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot  } from "@/components/ui/input-otp"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from '@radix-ui/react-hover-card';  // Adjust if using a different library
+
 const Forgotpassword = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [alertotp, setotpAlert] = useState("");
   const navigate = useNavigate();
+
+   const [alert, setAlert] = useState("");
+   const [isChanged, setIsChanged] = useState(false);
+  
+  const [OTPVisible, setOTPVisible] = useState(false);
+  const [otp, setOtp] = useState("");
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
@@ -38,7 +49,6 @@ const Forgotpassword = () => {
     return;
     }
     
-    
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -46,25 +56,99 @@ const Forgotpassword = () => {
       return;
     }
 
-    // toast.loading("Updating password...");
-    axios.post("http://localhost:5000/forgotpassword", { email, password })
-      .then(({ data }) => {
-        const { message } = data;
-        if (message === "Invalid user") {
-          setError("New email detected. Please sign up");
-          toast.error("Email not found. Please sign up.");
-        } else if (message === "Password updated successfully") {
-          toast.success("Password updated successfully!");
-          setTimeout(() => navigate("/auth/login"), 2000);
+    axios.post("http://localhost:5000/checkupdateuserpw", { email })
+    .then((res) => {
+
+      if(res.data.message == "Invalid user"){
+        setError("New email detected. Please sign up");
+        toast.error("Email not found. Please sign up.");
+      }
+
+      else if(res.data.message == "current user"){
+        axios.post("http://localhost:5000/send-otpchangepassword", { email , password })
+        .then((res) => {
+          console.log("OTP:", res.data.otp);
+          const toastLoad = toast.loading("Wait until process...");
+    
+          if(res.data.message == "OTP sent successfully"){
+            setTimeout(() => {
+              toast.dismiss(toastLoad);
+              setOTPVisible(true); 
+              toast.success("OTP Sent! Check your email.");
+            }, 1500);
+          }
+        })
+        .catch((err) => {
+          console.error("OTP Error: ", err);
+          setError("Failed to send OTP. Try again.");
+        });
+       }
+    })
+    .catch((err) => {
+      console.error("OTP Error: ", err);
+      setError("Failed to send OTP. Try again.");
+    });
+
+  };
+
+   const otpClose = () => {
+      setOTPVisible(false);
+      setOtp("");
+    };
+  
+    const handleOTPSubmit = () => {
+
+      if (!/^\d{5}$/.test(otp)) {
+        toast.error("OTP must be 5 digits.");
+        return;
+      }
+  
+      console.log("I entered OTP iS :",otp);
+      const toastLoadOTP = toast.loading("Verifying OTP...");
+
+      axios.post("http://localhost:5000/verify-otpchangepassword", { email, otp })
+      .then((res) => {
+        if (res.data.message === "OTP Verified") {
+          
+          axios.post("http://localhost:5000/forgotpassword", { email, password })
+            .then((res) => {
+              const { message } = res.data;
+    
+              if (message === "Password updated successfully") {
+                setTimeout(() => {
+                  toast.dismiss(toastLoadOTP);
+                  toast.success("Password change Successfully!");
+                  setOTPVisible(false);
+                  navigate("/auth/login")
+                }, 1500);
+              }})
+
+            .catch(() => {
+              otpClose();
+              setError("Server error. Please try again.");
+              toast.error("Server error. Try again");
+            });
+    
+        } else if (res.data.message === "Invalid OTP") {
+          setTimeout(() => {
+            toast.dismiss(toastLoadOTP);
+            setotpAlert("Invalid OTP")
+            toast.error("Invalid OTP. Please try again.");
+            //otpClose(); 
+          }, 2000);
         }
       })
       .catch(() => {
-        setError("Server error. Please try again.");
-        toast.error("Server error. Try again");
+        setError("OTP verification failed. Try again.");
       });
-  };
+    }
+
+      
+
+
 
   return (
+    <>
     <div className="relative flex flex-col min-h-screen bg-black text-white overflow-hidden">
       <Toaster />
       {/* Header */}
@@ -126,6 +210,42 @@ const Forgotpassword = () => {
         </div>
       </div>
     </div>
+
+     <Dialog open={OTPVisible} onOpenChange={otpClose}>
+            <DialogContent className="bg-white rounded-2xl p-6 shadow-lg">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-800">Enter OTP</DialogTitle>
+              </DialogHeader>
+              <div className="flex justify-center my-4">
+                <InputOTP value={otp} onChange={setOtp} maxLength={6} className="border-black">
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              <div className="flex justify-end">
+              {alert && <p style={{ color: "red", marginRight: "100px" }}>{alert}</p>}
+                <button
+                  onClick={handleOTPSubmit}
+                  style={{
+                    backgroundColor: "#38bdf8",
+                    color: "white",
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    fontWeight: "600"
+                  }}
+                >
+                  Verify OTP
+                </button>
+                <br/>
+              </div>
+            </DialogContent>
+          </Dialog>
+    </>
   );
 };
 

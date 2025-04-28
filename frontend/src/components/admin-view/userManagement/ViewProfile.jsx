@@ -55,8 +55,8 @@ const Profile = () => {
 
       <div className="profile-content">
         <div className="profile-card">
-          <img src={userprofile} alt="Profile" className="profile-image" />
-          <h2>{userSession.user?.username}</h2>
+        <img src={userSession?.user?.profileImage || userprofile} alt="Profile" className="profile-image" />
+          <h1 style={{ fontSize: "50px"}}>{userSession.user?.username}</h1>
 
           <table className="profile-table">
             <tbody>
@@ -69,9 +69,9 @@ const Profile = () => {
 
           <button onClick={() => navigate('/client/updateprofile')} className="edit-button">Edit Profile</button>
           <button onClick={() => deleteAccount(myemail)} className="delete-button">Delete Account</button>
-          <button className="change-password-button">Change Password</button>
+          <button className="change-password-button" onClick={() => navigate('/client/changepassword')}>Change Password</button>
         </div> 
-      </div>
+       </div>
     </div>
   );
 };
