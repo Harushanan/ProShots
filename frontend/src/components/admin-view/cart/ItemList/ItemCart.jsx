@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineEdit, AiOutlineDelete, AiOutlineCheckCircle } from "react-icons/ai";
 import { FiShoppingCart } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { AiOutlineCheckCircle } from "react-icons/ai";
 import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
 const ItemCard = ({
@@ -14,69 +14,114 @@ const ItemCard = ({
   onDelete,
   onImageClick,
   getPriceForSize,
+  darkMode,
 }) => {
   const [clickedItem, setClickedItem] = useState(null);
+  const location = useLocation();
 
   const hasValidSizes =
     item.sizes && item.sizes.some((size) => size.size.trim() !== "");
 
   const addToCart = () => {
-  setClickedItem(item.id);
+    setClickedItem(item._id); 
 
-  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+    const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
 
-  const newItem = {
-    id: item.id,  
-    name: item.name,
-    image: item.image,
-    price: getPriceForSize(item, selectedSize),
-    
-    ...(hasValidSizes && { 
-      selectedSize: selectedSize || "" 
-    })
+    const existingItemIndex = cartItems.findIndex(cartItem => {
+      if (cartItem._id !== item._id) return false; 
+      
+      if (hasValidSizes) {
+        const cartItemSize = cartItem.selectedSize || cartItem.size;
+        return cartItemSize === selectedSize;
+      }
+      
+      return true;
+    });
+
+    if (existingItemIndex !== -1) {
+      cartItems[existingItemIndex].quantity += 1;
+      cartItems[existingItemIndex].itemTotal = 
+        cartItems[existingItemIndex].quantity * cartItems[existingItemIndex].price;
+      
+      toast.info(
+        `${cartItems[existingItemIndex].name}${
+          hasValidSizes ? (selectedSize ? ` (Size: ${selectedSize})` : "") : ""
+        } already exists in cart. Increased quantity to ${cartItems[existingItemIndex].quantity}`,
+        {
+          className: darkMode ? 'bg-gray-800 text-blue-300' : 'bg-blue-50 text-blue-700',
+          progressClassName: 'bg-blue-400',
+        }
+      );
+    } else {
+      const newItem = {
+        _id: item._id, 
+        id: item._id, 
+        name: item.name,
+        image: item.image,
+        price: getPriceForSize(item, selectedSize),
+        quantity: 1,
+        itemTotal: getPriceForSize(item, selectedSize),
+        ...(hasValidSizes && { selectedSize: selectedSize }),
+      };
+      cartItems.push(newItem);
+      toast.success(
+        `Added ${item.name}${
+          hasValidSizes ? (selectedSize ? ` (Size: ${selectedSize})` : "") : ""
+        } to cart!`,
+        {
+          className: darkMode ? 'bg-gray-800 text-green-300' : 'bg-green-50 text-green-700',
+          progressClassName: 'bg-green-400',
+        }
+      );
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+    window.dispatchEvent(new Event("storage"));
+    setTimeout(() => setClickedItem(null), 1500);
   };
 
-  cartItems.push(newItem);
-  localStorage.setItem("cart", JSON.stringify(cartItems));
-
-  toast.success(
-    `Added ${item.name}${
-      hasValidSizes ? (selectedSize ? ` (Size: ${selectedSize})` : "") : ""
-    } to cart!`
-  );
-
-  window.dispatchEvent(new Event("storage"));
-  setTimeout(() => setClickedItem(null), 1500);
-};
-
   return (
-    <div className="flex flex-col md:flex-row bg-gradient-to-r from-blue-50 to-purple-50 shadow-2xl rounded-xl overflow-hidden p-4 md:p-6 hover:shadow-3xl transition-shadow duration-300">
+    <div className={`flex flex-col md:flex-row shadow-2xl rounded-xl overflow-hidden p-4 md:p-6 hover:shadow-3xl transition-shadow duration-300 ${
+      darkMode 
+        ? 'bg-gradient-to-r from-gray-800 to-gray-700' 
+        : 'bg-gradient-to-r from-blue-50 to-purple-50'
+    }`}>
       {/* Image Section */}
       {item.image && (
         <div className="w-full md:w-1/2 flex justify-center md:justify-start">
           <img
             src={item.image}
             alt={item.name}
-            className="w-48 h-48 md:w-64 md:h-64 object-cover rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-300"
-            onClick={onImageClick}
+            className={`w-48 h-48 md:w-64 md:h-64 object-cover rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-300 ${
+              darkMode ? 'border-2 border-gray-600' : ''
+            }`}
+            onClick={() => onImageClick(item)}
           />
         </div>
       )}
 
       {/* Content Section */}
       <div className="w-full md:w-1/2 mt-4 md:mt-0 md:ml-6">
-        <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">
+        <h3 className={`text-xl md:text-2xl font-bold mb-4 ${
+          darkMode ? 'text-white' : 'text-gray-800'
+        }`}>
           {item.name}
         </h3>
 
         {/* Size Selector */}
         {hasValidSizes && (
           <div className="mt-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${
+              darkMode ? 'text-gray-300' : 'text-gray-700'
+            }`}>
               Sizes
             </label>
             <select
-              className="w-full bg-white border-2 border-blue-400 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-600 transition-colors duration-300"
+              className={`w-full border-2 rounded-lg px-4 py-2 text-sm focus:outline-none transition-colors duration-300 ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-blue-400 focus:border-blue-600'
+              }`}
               onChange={(e) => onSizeChange(e.target.value)}
               value={selectedSize}
             >
@@ -93,59 +138,66 @@ const ItemCard = ({
         )}
 
         {/* Price */}
-        <p className="text-lg md:text-xl font-bold text-gray-800 mt-4">
+        <p className={`text-lg md:text-xl font-bold mt-4 ${
+          darkMode ? 'text-white' : 'text-gray-800'
+        }`}>
           Price:{" "}
-          <span className="text-blue-600">
+          <span className={darkMode ? 'text-blue-300' : 'text-blue-600'}>
             {getPriceForSize(item, selectedSize)} Rs/-
           </span>
         </p>
 
         {/* Buttons */}
         <div className="mt-6 flex flex-col gap-3">
-          {!location.pathname.includes('/admin/product-list') &&
+          {!location.pathname.includes("/admin/product-list") && (
             <button
-                onClick={addToCart}
-                className="bg-blue-500 text-white py-6 rounded-lg mt-4 flex items-center justify-center relative overflow-hidden w-full text-lg font-medium"
+              onClick={addToCart}
+              className={`text-white py-6 rounded-lg mt-4 flex items-center justify-center relative overflow-hidden w-full text-lg font-medium ${
+                darkMode ? 'bg-blue-700 hover:bg-blue-800' : 'bg-blue-500 hover:bg-blue-600'
+              }`}
             >
-                
-                {clickedItem !== item.id && (
+              {clickedItem !== item.id && (
                 <span className="absolute">Add to Cart</span>
-                )}
+              )}
 
-            
-                <motion.div
-                className="absolute left-0 flex items-center"
-                initial={{ x: "-100%" }} // Start from the left
-                animate={{ x: clickedItem === item.id ? "100%" : "-100%" }} // Move to the right if clicked
-                transition={{ duration: 1.5, ease: "easeInOut" }} // Smooth animation
-                >
+             <motion.div
+               className="absolute left-0 flex items-center"
+               initial={{ x: "-100%" }}
+               animate={{ x: clickedItem === item._id ? "100%" : "-100%" }}
+               transition={{ duration: 1.5, ease: "easeInOut" }}
+              >
                 <div className="relative">
-                    <FiShoppingCart className="w-8 h-8 text-white mx-32" />
-                    <AiOutlineCheckCircle className="absolute top-0 left-2 w-4 h-4 text-green-400 mx-32" />
-                </div>
-                </motion.div>
+                 <FiShoppingCart className="w-8 h-8 text-white mx-32" />
+                 <AiOutlineCheckCircle className="absolute top-0 left-2 w-4 h-4 text-green-400 mx-32" />
+               </div>
+              </motion.div>
+
             </button>
-          }
+          )}
 
           {/* Edit and Delete Buttons */}
-          { location.pathname.includes('/admin/product-list') &&
+          {location.pathname.includes("/admin/product-list") && (
             <div className="flex gap-2 md:gap-4">
-                <button
+              <button
                 onClick={onEdit}
-                className="flex items-center justify-center gap-2 bg-green-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm font-semibold hover:bg-green-600"
-                >
+                className={`flex items-center justify-center gap-2 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm font-semibold ${
+                  darkMode ? 'bg-green-700 hover:bg-green-800' : 'bg-green-500 hover:bg-green-600'
+                }`}
+              >
                 <AiOutlineEdit className="text-lg" />
                 EDIT
-                </button>
-                <button
+              </button>
+              <button
                 onClick={onDelete}
-                className="flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm font-semibold hover:bg-red-600"
-                >
+                className={`flex items-center justify-center gap-2 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm font-semibold ${
+                  darkMode ? 'bg-red-700 hover:bg-red-800' : 'bg-red-500 hover:bg-red-600'
+                }`}
+              >
                 <AiOutlineDelete className="text-lg" />
                 DELETE
-                </button>
+              </button>
             </div>
-          }
+          )}
         </div>
       </div>
     </div>

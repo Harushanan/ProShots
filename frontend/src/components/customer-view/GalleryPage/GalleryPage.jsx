@@ -1,29 +1,69 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import "./GalleryPage.css"; 
+import "./GalleryPage.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRight, faVolumeMute, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faArrowRight, faVolumeMute, faVolumeUp, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FilesDeleteConfirmation from "@/components/customer-view/GalleryPage/FilesDeleteConfirmation";
 import { useLocation } from "react-router-dom";
 import MuteUnmuteButton from "./MuteUnmuteButton";
 
+const STORAGE_KEY = "galleryPageState";
+
 const GalleryPage = () => {
+  const getInitialState = () => {
+    try {
+      const savedState = localStorage.getItem(STORAGE_KEY);
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        return {
+          view: parsed.view || "images",
+          activeVideoIndex: parsed.activeVideoIndex || 0,
+          activeImageIndex: parsed.activeImageIndex || 0,
+          isMuted: typeof parsed.isMuted === 'boolean' ? parsed.isMuted : true
+        };
+      }
+    } catch (e) {
+      console.error("Error parsing saved state:", e);
+    }
+    return {
+      view: "images",
+      activeVideoIndex: 0,
+      activeImageIndex: 0,
+      isMuted: true
+    };
+  };
+
+  const [state, setState] = useState(getInitialState);
+  const { view, activeVideoIndex, activeImageIndex, isMuted } = state;
+  
   const [images, setImages] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [view, setView] = useState("images");
   const [error, setError] = useState(null);
   const [deletingItems, setDeletingItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [loadingVideos, setLoadingVideos] = useState({});
   const videoRefs = useRef([]);
   const location = useLocation();
 
-  // Fetch files from the server
   useEffect(() => {
-    fetchFiles();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      view,
+      activeVideoIndex,
+      activeImageIndex,
+      isMuted
+    }));
+  }, [view, activeVideoIndex, activeImageIndex, isMuted]);
+
+  useEffect(() => {
+    try {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (current && current.includes('activeVideoIndex: {')) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (e) {
+      console.error("Error cleaning storage:", e);
+    }
   }, []);
 
   const fetchFiles = async () => {
@@ -32,84 +72,86 @@ const GalleryPage = () => {
       if (!res.ok) throw new Error("Failed to fetch files");
       const data = await res.json();
 
-      const imageFiles = data.filter((file) => file.fileType === "image");
-      const videoFiles = data.filter((file) => file.fileType === "video");
-
-      setImages(imageFiles);
-      setVideos(videoFiles);
+      setImages(data.filter(file => file.fileType === "image"));
+      setVideos(data.filter(file => file.fileType === "video"));
     } catch (err) {
       console.error("Error fetching files:", err);
       setError("Failed to load files.");
     }
   };
 
-  // Handle next slide
-  const handleNext = useCallback(
-    (type) => {
-      if (isDeleting) return;
+  const updateState = (newState) => {
+    setState(prev => ({ ...prev, ...newState }));
+  };
 
-      if (type === "video") {
-        if (videoRefs.current[activeVideoIndex]) {
-          videoRefs.current[activeVideoIndex].pause();
-        }
-        setActiveVideoIndex((prev) => (prev + 1) % videos.length);
+  const handleViewChange = (newView) => {
+    if (isDeleting) return;
+    updateState({ view: newView });
+  };
+
+  const handleNext = useCallback((type) => {
+    if (isDeleting) return;
+
+    if (type === "video") {
+      if (videoRefs.current[activeVideoIndex]) {
+        videoRefs.current[activeVideoIndex].pause();
       }
+      const newIndex = (activeVideoIndex + 1) % videos.length;
+      updateState({ activeVideoIndex: newIndex });
+    } else if (type === "image") {
+      const newIndex = (activeImageIndex + 1) % images.length;
+      updateState({ activeImageIndex: newIndex });
+    }
 
-      const slide = document.querySelector(`.${type}-slide`);
-      const items = document.querySelectorAll(`.${type}-item`);
-      if (slide && items.length > 0) {
-        slide.appendChild(items[0]);
+    const slide = document.querySelector(`.${type}-slide`);
+    const items = document.querySelectorAll(`.${type}-item`);
+    if (slide && items.length > 0) {
+      slide.appendChild(items[0]);
+    }
+  }, [isDeleting, activeVideoIndex, videos.length, activeImageIndex, images.length]);
+
+  const handlePrev = useCallback((type) => {
+    if (isDeleting) return;
+
+    if (type === "video") {
+      if (videoRefs.current[activeVideoIndex]) {
+        videoRefs.current[activeVideoIndex].pause();
       }
-    },
-    [isDeleting, videos.length, activeVideoIndex]
-  );
+      const newIndex = (activeVideoIndex - 1 + videos.length) % videos.length;
+      updateState({ activeVideoIndex: newIndex });
+    } else if (type === "image") {
+      const newIndex = (activeImageIndex - 1 + images.length) % images.length;
+      updateState({ activeImageIndex: newIndex });
+    }
 
-  // Handle previous slide
-  const handlePrev = useCallback(
-    (type) => {
-      if (isDeleting) return;
+    const slide = document.querySelector(`.${type}-slide`);
+    const items = document.querySelectorAll(`.${type}-item`);
+    if (slide && items.length > 0) {
+      slide.prepend(items[items.length - 1]);
+    }
+  }, [isDeleting, activeVideoIndex, videos.length, activeImageIndex, images.length]);
 
-      if (type === "video") {
-        if (videoRefs.current[activeVideoIndex]) {
-          videoRefs.current[activeVideoIndex].pause();
-        }
-        setActiveVideoIndex(
-          (prev) => (prev - 1 + videos.length) % videos.length
-        );
-      }
+  const toggleSound = () => {
+    const newMuted = !isMuted;
+    if (videoRefs.current[activeVideoIndex]) {
+      videoRefs.current[activeVideoIndex].muted = newMuted;
+    }
+    updateState({ isMuted: newMuted });
+  };
 
-      const slide = document.querySelector(`.${type}-slide`);
-      const items = document.querySelectorAll(`.${type}-item`);
-      if (slide && items.length > 0) {
-        slide.prepend(items[items.length - 1]);
-      }
-    },
-    [isDeleting, videos.length, activeVideoIndex]
-  );
+  useEffect(() => {
+    fetchFiles();
+  }, []);
 
-  // Automatically change images every 15 seconds
   useEffect(() => {
     if (view === "images" && images.length > 1) {
       const interval = setInterval(() => {
         handleNext("image");
       }, 15000);
-
       return () => clearInterval(interval);
     }
   }, [view, images, handleNext]);
 
-  // Toggle sound for the active video
-  const toggleSound = () => {
-    setIsMuted((prev) => {
-      const newMutedState = !prev;
-      if (videoRefs.current[activeVideoIndex]) {
-        videoRefs.current[activeVideoIndex].muted = newMutedState;
-      }
-      return newMutedState;
-    });
-  };
-
-  // Manage video playback when active video changes
   useEffect(() => {
     if (view !== "videos") return;
 
@@ -119,21 +161,12 @@ const GalleryPage = () => {
       if (index === activeVideoIndex) {
         video.style.display = "block";
         video.muted = isMuted;
-        setLoadingVideos((prev) => ({ ...prev, [videos[index]._id]: true }));
-        video
-          .play()
-          .then(() =>
-            setLoadingVideos((prev) => ({
-              ...prev,
-              [videos[index]._id]: false,
-            }))
-          )
-          .catch((e) => {
+        setLoadingVideos(prev => ({ ...prev, [videos[index]?._id]: true }));
+        video.play()
+          .then(() => setLoadingVideos(prev => ({ ...prev, [videos[index]?._id]: false })))
+          .catch(e => {
             console.log("Autoplay prevented:", e);
-            setLoadingVideos((prev) => ({
-              ...prev,
-              [videos[index]._id]: false,
-            }));
+            setLoadingVideos(prev => ({ ...prev, [videos[index]?._id]: false }));
           });
       } else {
         video.style.display = "none";
@@ -143,39 +176,39 @@ const GalleryPage = () => {
     });
   }, [activeVideoIndex, isMuted, view, videos]);
 
-  // Reset video refs when videos change
   useEffect(() => {
     videoRefs.current = videoRefs.current.slice(0, videos.length);
   }, [videos]);
 
-  // Cleanup videos on unmount
   useEffect(() => {
     return () => {
-      videoRefs.current.forEach((video) => {
+      videoRefs.current.forEach(video => {
         if (video) video.pause();
       });
     };
   }, []);
 
+ //console.log(activeImageIndex);
+  
   return (
     <div className="container">
       <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              style={{
-                  zIndex: 9999,  // Make sure the toast is on top of the header
-                  marginTop: '70px', // Add some margin to push the toast down below the header
-                  backgroundColor: 'white !important',
-              }}
+        position="top-right"
+        autoClose={3000}
+        style={{
+          zIndex: 9999,
+          marginTop: '70px',
+          backgroundColor: 'white !important',
+        }}
       />
 
-      {/* Images/Videos view buttons */}
       {error && (
         <p className="flex items-center justify-center text-red-500 text-center mb-4 animate-pulse">
           <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
           {error}
         </p>
       )}
+
       <div className="view-buttons-container flex justify-center gap-4 mb-4">
         <button
           className={`px-4 md:px-6 py-2 rounded-lg transition-colors duration-300 ${
@@ -183,7 +216,7 @@ const GalleryPage = () => {
               ? "bg-teal-500 text-white hover:bg-teal-600"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
-          onClick={() => setView("images")}
+          onClick={() => handleViewChange("images")}
           disabled={isDeleting}
         >
           Images
@@ -194,36 +227,31 @@ const GalleryPage = () => {
               ? "bg-teal-500 text-white hover:bg-teal-600"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
-          onClick={() => setView("videos")}
+          onClick={() => handleViewChange("videos")}
           disabled={isDeleting}
         >
           Videos
         </button>
       </div>
 
-      {/* Image Slider */}
       {view === "images" && (
         <div className="image-slide slide">
           {images.map((file, index) => (
             <div
               key={file._id}
-              className={`image-item item ${index === 0 ? "active" : ""} ${
+              className={`image-item item ${index === activeImageIndex ? "active" : ""} ${
                 deletingItems.includes(file._id) ? "rocket-animation" : ""
               }`}
               style={{
                 backgroundImage: `url(${file.fileUrl})`,
+                
               }}
             >
               <div className="content">
-                <button className="
-                  italic font-sans font-light text-lg 
-                 hover:text-gray-900 
-                  transition-colors duration-200
-                  cursor-default
-                  ">
+                <button className="italic font-sans font-light text-lg hover:text-blue-600 transition-colors duration-200 cursor-default">
                   ProShots creations
                 </button>
-                { location.pathname.includes('/admin/gallery') &&
+                {location.pathname.includes('/admin/gallery') &&
                   <FilesDeleteConfirmation
                     fileId={file._id}
                     fileType="image"
@@ -232,15 +260,72 @@ const GalleryPage = () => {
                     setVideos={setVideos}
                     setIsDeleting={setIsDeleting}
                     isDeleting={isDeleting}
+                    images={images}
+                    videos={videos}
                   />
-              }
+                }
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Navigation Arrow buttons for Image Slider */}
+      {view === "videos" && (
+        <div className="video-slide slide">
+          {videos.map((file, index) => (
+            <div
+              key={file._id}
+              className={`video-item item ${index === activeVideoIndex ? "active" : ""} ${
+                deletingItems.includes(file._id) ? "rocket-animation" : ""
+              }`}
+              style={{
+                opacity: index === activeVideoIndex ? 1 : 0,
+                zIndex: index === activeVideoIndex ? 2 : 1,
+              }}
+            >
+              <video
+                ref={(el) => (videoRefs.current[index] = el)}
+                className="video-player"
+                autoPlay={index === activeVideoIndex}
+                loop
+                muted={isMuted}
+                playsInline
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 1
+                }}
+              >
+                <source src={file.fileUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+
+              <div className="content" style={{ zIndex: 2 }}>
+                <button className="italic font-sans font-light text-lg hover:text-blue-600 transition-colors duration-200 cursor-default text-white">
+                  ProShots creations
+                </button>
+                {location.pathname.includes('/admin/gallery') &&
+                  <FilesDeleteConfirmation
+                    fileId={file._id}
+                    fileType="video"
+                    setDeletingItems={setDeletingItems}
+                    setImages={setImages}
+                    setVideos={setVideos}
+                    setIsDeleting={setIsDeleting}
+                    isDeleting={isDeleting}
+                    images={images}
+                    videos={videos}
+                  />
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {view === "images" && (
         <div className="buttons flex justify-between mt-4">
           <button
@@ -260,73 +345,6 @@ const GalleryPage = () => {
         </div>
       )}
 
-      {/* Video Slider */}
-      {view === "videos" && (
-        <div className="video-slide slide ">
-          {videos.map((file, index) => (
-            <div
-              key={file._id}
-              className={`video-item item ${index === activeVideoIndex ? "active" : ""} ${
-              deletingItems.includes(file._id) ? "rocket-animation" : ""
-              }`}
-              style={{
-                opacity: index === activeVideoIndex ? 1 : 0.5,
-                zIndex: index === activeVideoIndex ? 2 : 1,
-                
-              }}
-            >
-              <video
-                ref={(el) => (videoRefs.current[index] = el)}
-                className="video-player"
-                autoPlay={index === activeVideoIndex}
-                loop
-                muted={isMuted}
-                playsInline
-                onWaiting={() =>
-                  setLoadingVideos((prev) => ({ ...prev, [file._id]: true }))
-                }
-                onPlaying={() =>
-                  setLoadingVideos((prev) => ({ ...prev, [file._id]: false }))
-                }
-                onCanPlay={() =>
-                  setLoadingVideos((prev) => ({ ...prev, [file._id]: false }))
-                }
-              >
-                <source src={file.fileUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-                {loadingVideos[file._id] && (
-                  <div className="video-loading-indicator">Loading...</div>
-                )}
-              </video>
-
-              <div className="content">
-                <button className="
-                  italic font-sans font-light text-lg 
-                 hover:text-gray-900 
-                  transition-colors duration-200
-                  cursor-default
-                  ">
-                  ProShots creations
-                </button>
-                { location.pathname.includes('/admin/gallery') &&
-                <FilesDeleteConfirmation
-                  fileId={file._id}
-                  fileType="video"
-                  setDeletingItems={setDeletingItems}
-                  setImages={setImages}
-                  setVideos={setVideos}
-                  setIsDeleting={setIsDeleting}
-                  isDeleting={isDeleting}
-                />
-                }
-
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Navigation Arrow buttons for Video Slider */}
       {view === "videos" && (
         <div className="buttons flex justify-between mt-4">
           <button
@@ -346,7 +364,6 @@ const GalleryPage = () => {
         </div>
       )}
 
-      {/* Sound Toggle Button */}
       {view === "videos" && (
         <MuteUnmuteButton isMuted={isMuted} toggleSound={toggleSound} />
       )}

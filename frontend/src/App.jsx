@@ -44,8 +44,9 @@ import AdminDeliveryPage from "./pages/admin-view/AdminDeliveryPage";
 import FeedbackList from "./pages/admin-view/customer-relationship/Feedbacks";
 import ClientFAQ from "./pages/customer-view/FAQ";
 import AdminFAQPage from "./pages/admin-view/customer-relationship/FAQ";
-
-
+import OrderReport from "./pages/admin-view/order/OrderReport";
+ import CompareOrderReport from "./pages/admin-view/order/CompareOrderReport";
+ import FaqAndFeedbackReport from "./pages/admin-view/customer-relationship/FaqAndFeedbackReport";
 function App() {
     return (
         <>
@@ -119,12 +120,14 @@ function App() {
                     {/*  Order Management Routes  */}
                     <Route path="placedOrders" element={<PlacedOrders />} />
                     <Route path="deletedOrders" element={<DeletedOrders />} />
-
+                    <Route path="OrderReport" element={<OrderReport /> } />
+                   <Route path="compareOrderReport" element={<CompareOrderReport />} />
 
                     <Route path="delivery" element={<AdminDeliveryPage />} />
                     <Route path="feedback" element={<FeedbackList />} /> 
                     <Route path="faq" element={<AdminFAQPage />} />
-                    
+                     <Route path="FaqAndFeedbackReport" element={<FaqAndFeedbackReport />} />
+
                 </Route>
                 <Route path='/admin/DisplayOldFullEvent/:id' element={<DisplayOldFullEventAdmin />} />
                 <Route path="/admin/detailedOrder/:id" element={<DetailedOrderPage />} />

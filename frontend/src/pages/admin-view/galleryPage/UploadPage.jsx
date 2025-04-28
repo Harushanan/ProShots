@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { FaImage, FaVideo, FaCloudUploadAlt } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,6 +9,8 @@ const UploadPage = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [videoLoading, setVideoLoading] = useState(false);
+  const [dragActiveImage, setDragActiveImage] = useState(false);
+  const [dragActiveVideo, setDragActiveVideo] = useState(false);
 
   const handleFileUpload = async (e, file, type) => {
     e.preventDefault();
@@ -17,7 +19,6 @@ const UploadPage = () => {
     if (type === "image" && !validateImageSize(file)) return;
     if (type === "video" && !validateVideoSize(file)) return;
 
-    
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);
@@ -55,6 +56,36 @@ const UploadPage = () => {
     }
   };
 
+  const handleDrag = useCallback((e, type) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (type === "image") {
+      setDragActiveImage(e.type === "dragenter" || e.type === "dragover");
+    } else {
+      setDragActiveVideo(e.type === "dragenter" || e.type === "dragover");
+    }
+  }, []);
+
+  const handleDrop = useCallback((e, type) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (type === "image") {
+      setDragActiveImage(false);
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        if (e.dataTransfer.files[0].type.startsWith("image/")) {
+          setImageFile(e.dataTransfer.files[0]);
+        }
+      }
+    } else {
+      setDragActiveVideo(false);
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        if (e.dataTransfer.files[0].type.startsWith("video/")) {
+          setVideoFile(e.dataTransfer.files[0]);
+        }
+      }
+    }
+  }, []);
+
   const createImagePreview = (file) => {
     return file && file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
   };
@@ -70,8 +101,16 @@ const UploadPage = () => {
       </h1>
 
       <div className="flex space-x-10 mb-6">
-        {/* Image Upload Section */}
-        <div className="flex flex-col items-center bg-white p-6 rounded-2xl shadow-xl w-96 hover:scale-105 transition-transform duration-300">
+        
+        <div 
+          className={`flex flex-col items-center bg-white p-6 rounded-2xl shadow-xl w-96 hover:scale-105 transition-transform duration-300 ${
+            dragActiveImage ? "ring-4 ring-indigo-500" : ""
+          }`}
+          onDragEnter={(e) => handleDrag(e, "image")}
+          onDragLeave={(e) => handleDrag(e, "image")}
+          onDragOver={(e) => handleDrag(e, "image")}
+          onDrop={(e) => handleDrop(e, "image")}
+        >
           <label className="text-xl text-gray-800 flex items-center gap-3 font-semibold mb-4">
             <FaImage className="text-4xl text-indigo-600 hover:text-indigo-800 transition-colors duration-300" />
             <span>Upload Image</span>
@@ -80,10 +119,17 @@ const UploadPage = () => {
             id="imageInput"
             type="file"
             accept="image/*"
+            disabled={imageLoading}
             onChange={(e) => setImageFile(e.target.files[0])}
-            className="file:border-none file:rounded-lg file:px-6 file:py-4 file:text-lg file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600 file:transition-all file:duration-300 file:cursor-pointer w-full mb-4"
+            className={`file:border-none file:rounded-lg file:px-6 file:py-4 file:text-lg file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600 file:transition-all file:duration-300 file:cursor-pointer w-full mb-4 ${
+              imageLoading ? "cursor-not-allowed opacity-50" : ""
+            }`}
           />
-          <div className="w-full h-40 flex items-center justify-center border border-gray-300 rounded-md mb-4">
+          <div 
+            className={`w-full h-40 flex items-center justify-center border-2 border-dashed ${
+              dragActiveImage ? "border-indigo-500 bg-indigo-50" : "border-gray-300"
+            } rounded-md mb-4 relative`}
+          >
             {imageFile ? (
               <img
                 src={createImagePreview(imageFile)}
@@ -91,7 +137,10 @@ const UploadPage = () => {
                 className="max-w-full max-h-40 rounded-md shadow-md"
               />
             ) : (
-              <p className="text-gray-400">No image selected</p>
+              <div className="text-center p-4">
+                <p className="text-gray-400 mb-2">Drag & drop an image here</p>
+                <p className="text-gray-400 text-sm">or click to browse</p>
+              </div>
             )}
           </div>
           <button
@@ -111,8 +160,16 @@ const UploadPage = () => {
           </button>
         </div>
 
-        {/* Video Upload Section */}
-        <div className="flex flex-col items-center bg-white p-6 rounded-2xl shadow-xl w-96 hover:scale-105 transition-transform duration-300">
+        
+        <div 
+          className={`flex flex-col items-center bg-white p-6 rounded-2xl shadow-xl w-96 hover:scale-105 transition-transform duration-300 ${
+            dragActiveVideo ? "ring-4 ring-green-500" : ""
+          }`}
+          onDragEnter={(e) => handleDrag(e, "video")}
+          onDragLeave={(e) => handleDrag(e, "video")}
+          onDragOver={(e) => handleDrag(e, "video")}
+          onDrop={(e) => handleDrop(e, "video")}
+        >
           <label className="text-xl text-gray-800 flex items-center gap-3 font-semibold mb-4">
             <FaVideo className="text-4xl text-green-500 hover:text-green-700 transition-colors duration-300" />
             <span>Upload Video</span>
@@ -121,10 +178,17 @@ const UploadPage = () => {
             id="videoInput"
             type="file"
             accept="video/*"
+            disabled={videoLoading}
             onChange={(e) => setVideoFile(e.target.files[0])}
-            className="file:border-none file:rounded-lg file:px-6 file:py-4 file:text-lg file:font-semibold file:bg-green-500 file:text-white hover:file:bg-green-600 file:transition-all file:duration-300 file:cursor-pointer w-full mb-4"
+            className={`file:border-none file:rounded-lg file:px-6 file:py-4 file:text-lg file:font-semibold file:bg-green-500 file:text-white hover:file:bg-green-600 file:transition-all file:duration-300 file:cursor-pointer w-full mb-4 ${
+              videoLoading ? "cursor-not-allowed opacity-50" : ""
+            }`}
           />
-          <div className="w-full h-40 flex items-center justify-center border border-gray-300 rounded-md mb-4">
+          <div 
+            className={`w-full h-40 flex items-center justify-center border-2 border-dashed ${
+              dragActiveVideo ? "border-green-500 bg-green-50" : "border-gray-300"
+            } rounded-md mb-4 relative`}
+          >
             {videoFile ? (
               <video
                 controls
@@ -132,7 +196,10 @@ const UploadPage = () => {
                 src={createVideoPreview(videoFile)}
               />
             ) : (
-              <p className="text-gray-400">No video selected</p>
+              <div className="text-center p-4">
+                <p className="text-gray-400 mb-2">Drag & drop a video here</p>
+                <p className="text-gray-400 text-sm">or click to browse</p>
+              </div>
             )}
           </div>
           <button
@@ -157,9 +224,9 @@ const UploadPage = () => {
         position="top-right"
         autoClose={3000}
         style={{
-            zIndex: 9999,  // Make sure the toast is on top of the header
-            marginTop: '70px', // Add some margin to push the toast down below the header
-            backgroundColor: 'white !important',
+          zIndex: 9999,
+          marginTop: '70px',
+          backgroundColor: 'white !important',
         }}
       />
     </div>

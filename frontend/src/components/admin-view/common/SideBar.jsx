@@ -55,17 +55,17 @@ const SideBar = () => {
             <nav className="ml-8 mt-2 flex flex-col gap-2 text-white">
               <Link
                 to="/admin/gallery"
-                className="py-1 px-2 rounded hover:bg-blue-400 transition"
+                className="py-1 px-2 rounded hover:bg-blue-600 transition"
                 onClick={() => setIsOpen(false)}
               >
                 <span className="text-base">↳ Slider</span>
               </Link>
               <Link
                 to="/admin/uploadPage"
-                className="py-1 px-2 rounded hover:bg-blue-400 transition"
+                className="py-1 px-2 rounded hover:bg-blue-600 transition"
                 onClick={() => setIsOpen(false)}
               >
-                <span className="text-base">↳ Upload Photos</span>
+                <span className="text-base">↳ Upload media files</span>
               </Link>
             </nav>
           )}
