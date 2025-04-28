@@ -8,6 +8,7 @@ const loginRegister = new mongoose.Schema({
     phone: String,
     password: String,
     address: String,
+    profileImage: String,
     role:{type:String ,default:"customer"}
 });
 

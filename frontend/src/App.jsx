@@ -49,6 +49,8 @@ import Packages from "./components/customer-view/home/Packages";
 import DeletePackages from "./components/admin-view/dashboard/deletePackages";
 import MyBookings from "./components/customer-view/home/MyBookings";
 import ColorSetUp from "./components/customer-view/common/ColorSetUp";
+import AdminviewProfile from"./components/admin-view/userManagement/AdminViewUser";
+import ChangePassword from "./components/admin-view/userManagement/ChangePassword";
 
 
 function App() {
@@ -87,6 +89,7 @@ function App() {
                     <Route path="/client/faq" element={<ClientFAQ />} />
                     <Route path="/client/delivery" element={<DeliveryMethodPage />} />
                     <Route path="/client/myBookings" element={<MyBookings />} /> 
+                    <Route path="/client/changepassword" element={<ChangePassword />} />
                 </Route>
                 
 
@@ -114,6 +117,7 @@ function App() {
                     <Route path="adddAdmin" element={<AddAdmin />} />
                     <Route path="profile" element={<Profile/>}/>
                     <Route path="updateprofile" element={<ProfileUpdate/>}/>
+                    <Route path="/admin/userdetails/:id" element={<AdminviewProfile />} />
 
 
                     {/*  Gallery Page Routes  */}

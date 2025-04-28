@@ -1,5 +1,5 @@
 const express = require('express');
-const { loginuser, signupuser, updateuserpw, displayuser , deleteuser , displaydeletuser , addAdmin ,displayadmin , deleteaccount , updateprofile, checkregister , SentOTP , verifyOTP } = require('../controls/userController');
+const { loginuser, signupuser, updateuserpw, displayuser , deleteuser , displaydeletuser , addAdmin ,displayadmin , deleteaccount , updateprofile, checkregister , SentOTP , verifyOTP , getuserdeatiles , sendotpchangepassword , verifyotpchangepassword , adduser , checkupdateuserpw } = require('../controls/userController');
 
 const router = express.Router();
  
@@ -18,7 +18,12 @@ router.post('/updateprofile',updateprofile)
 
 router.post('/checkregister',checkregister)
 router.post('/send-otp',SentOTP)
+router.post('/send-otpchangepassword',sendotpchangepassword)
+router.post('/verify-otpchangepassword',verifyotpchangepassword)
 router.post('/verify-otp',verifyOTP)
+router.get('/getuserdeatiles',getuserdeatiles)
+router.post('/adduser', adduser);
+router.post('/checkupdateuserpw',checkupdateuserpw)
 //------------------------------------------------//
 
 

@@ -1,6 +1,9 @@
 const bcrypt = require('bcryptjs');
 const { UserModel, DeletedUserModel ,AdminUserModel } = require('../models/usertable')
+const BookingSchema = require('../models/EventBookingModel')
+const orderSchema = require('../models/Order')
 const sendEmail = require('../config/mailService');
+const { deleteModel } = require('mongoose');
 
 
 //--------------- Login details ------------------- //
@@ -89,6 +92,38 @@ const SentOTP = async(req, res) => {
     res.json({ otp });
 };
 
+// --------- Sent OTP passworddchange -------//
+const sendotpchangepassword = async(req, res) => {
+    const { email } = req.body;
+    const otp = Math.floor(10000 + Math.random() * 90000); 
+
+    if (!otpStore[email]) {
+        otpStore[email] = {};
+    }
+
+    otpStore[email].otp = otp;
+
+    setTimeout(() => {
+        if (otpStore[email]) { 
+            delete otpStore[email]; 
+        }
+    }, 1000 * 60 * 5);
+
+    let to = email;
+    let emailSubject = `Your OTP for Password Change`;
+    let emailText = `Your OTP Code to change your password is : ${otp}.
+    This OTP will expire in 5 minutes.`;
+    
+    if (emailSubject && emailText) {
+        await sendEmail(to, emailSubject, emailText);
+    }
+
+    res.json({message: "OTP sent successfully" , otp: otp });
+
+
+
+};
+
 //------------------ Verify OTP -------------//
 const verifyOTP = async (req, res) => {
     const { email, otp } = req.body;
@@ -102,6 +137,23 @@ const verifyOTP = async (req, res) => {
         res.json({ message: "Invalid OTP" });
     }
 };
+
+
+
+//------------------ Verify OTP for change password -------------//
+const verifyotpchangepassword = async (req, res) => {
+    const { email, otp } = req.body;
+    
+    if (otpStore[email] && otpStore[email].otp == otp) {
+        delete otpStore[email]; 
+        res.json({ message: "OTP Verified" });
+    } else {
+        res.json({ message: "Invalid OTP" });
+    }
+};
+
+
+
 
 
 
@@ -126,7 +178,7 @@ const signupuser = async (req, res) => {
     } 
 };
 
-//--------------- Forgot password ------------------- //
+//--------------- Forgot password ------------------- ///
 const updateuserpw = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -148,13 +200,32 @@ const updateuserpw = async (req, res) => {
     }
 };
 
+//--------------- check is Forgot password ------------------- ///
+const checkupdateuserpw = async (req, res) => {
+    try {
+        const { email} = req.body;
+        const user = await UserModel.findOne({ email }); //04
+
+        if (!user) {
+            return res.json({ message: "Invalid user" });
+        }
+
+        else{
+            return res.json({ message: "current user" });
+        }
+    } catch (error) {
+        console.error("Error updating password:", error);
+        res.status(500).json({ error: "Server error. Please try again." });
+    }
+};
+
 //---------- Update user profile ------------------//
 const updateprofile = async (req, res) => {
     try {
-        const { username, address, phone, email } = req.body;
+        const { username, address, phone, email, profileImage } = req.body;
 
         const updatedUser = await UserModel.findOneAndUpdate({ email },
-            { $set: { username, address, phone } },
+            { $set: { username, address, phone , profileImage: profileImage} },
             { new: true } 
         );
 
@@ -212,7 +283,16 @@ const deleteuser = async (req, res) => {
             const deletedUser = await UserModel.findOneAndDelete({ email });
     
             if (deletedUser) {
+                let to = email;
+                let emailSubject = `Account Removal Notice`;
+                let emailText = `Your account has been removed due to: ${reason}.
+                For any questions, please contact us.`;
+                
+                if (emailSubject && emailText) {
+                    await sendEmail(to, emailSubject, emailText);
+                }
                 return res.json({ message: 'UserDeleted' });
+                
             } else {
                 return res.status(404).json({ message: 'UserNotFound' });
             }
@@ -223,7 +303,37 @@ const deleteuser = async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Failed to delete user' });
     }
+
 };
+
+//-----Add Deleteuser --------------------//
+const adduser = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const deletedUser = await DeletedUserModel.findOneAndDelete({ email });
+    
+            if (deletedUser) {
+                let to = email;
+                let emailSubject = `Account Approval Notice`;
+                let emailText = `Your account request has been approved by the Admin.
+                You can now re-sign up and continue using our services. 
+                For any questions, please contact us.`;
+
+                
+                if (emailSubject && emailText) {
+                    await sendEmail(to, emailSubject, emailText);
+                }
+                return res.json({ message: 'UserAdd' });
+            } else {
+                return res.status(404).json({ message: 'UserNotFound' });
+            }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to add user' });
+    }
+};
+
+
 
 
 const deleteaccount =  async (req, res) => {
@@ -308,10 +418,38 @@ const displayadmin = async (req, res) => {
     }
 };
 
+//============== Admin View user  booking , order =================//
+const getuserdeatiles = async (req, res) => {
+    try {
+        const { id } = req.query;
+
+        let currentusers = await UserModel.findById(id);
+
+        if (!currentusers) {
+            const deleteuser = await DeletedUserModel.findById(id);
+            currentusers = deleteuser;
+        }
+
+        if (!currentusers) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const eventbooking = await BookingSchema.find({ email: currentusers.email });
+        const order = await orderSchema.find({ email: currentusers.email });
+
+        res.json({ user: currentusers, eventbooking, order });
+
+    } catch (err) {
+        console.error("Database error:", err);
+        res.status(500).json({ message: "Database connection failed" });
+    }
+};
+
+
 
 
 
 
 
  
-module.exports = { loginuser, signupuser, updateuserpw, displayuser , deleteuser , displaydeletuser ,addAdmin, displayadmin , deleteaccount , updateprofile , checkregister , SentOTP , verifyOTP};
+module.exports = { loginuser, signupuser, updateuserpw, displayuser , deleteuser , displaydeletuser ,addAdmin, displayadmin , deleteaccount , updateprofile , checkregister , SentOTP , verifyOTP , getuserdeatiles , sendotpchangepassword , verifyotpchangepassword , adduser , checkupdateuserpw};
