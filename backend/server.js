@@ -2,8 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
-const { Groq } = require("groq-sdk");
 const Joi = require("joi");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
@@ -18,47 +16,78 @@ const orderRouter = require("./routes/orderRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
 const feedbackRoutes = require("./routes/CustomerRelation");
 const path = require("path");
+const imageSearchRoutes = require("./routes/imageSearchRoute");
+const { Groq } = require("groq-sdk");
 
 // Initialize Express app
 const app = express();
 
-// Middleware setup
+// =============================================
+// 1. SECURITY & ESSENTIAL MIDDLEWARE (FIRST)
+// =============================================
 app.use(helmet());
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Frontend URL
-    credentials: true, // Allow cookies (important!)
-  })
-);
-app.use(cookieParser());
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
-// Initialize Groq API
-if (!process.env.GROQ_API_KEY) {
-  console.error("Missing GROQ_API_KEY environment variable");
-  process.exit(1);
-}
+// =============================================
+// 2. BODY PARSERS (SECOND)
+// =============================================
+// Note: express.json() replaces bodyParser.json() in modern Express
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// =============================================
+// 3. CORS & COOKIE PARSER (THIRD)
+// =============================================
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.use(cookieParser());
 
-// MongoDB connection
+// =============================================
+// 4. DATABASE CONNECTION
+// =============================================
 mongoose
   .connect(
     "mongodb+srv://Thananchayan:Thanu2002@cluster0.oxle4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   )
   .then(() => {
-    console.log("Mongodb Connected.");
+    console.log("MongoDB Connected.");
     createPermanentAdmin();
   })
   .catch((e) => {
-    console.log(e);
+    console.error("MongoDB Connection Error:", e);
   });
 
-// Input validation for analysis endpoint
+// =============================================
+// 5. GROQ INITIALIZATION
+// =============================================
+if (!process.env.GROQ_API_KEY) {
+  console.error("Missing GROQ_API_KEY environment variable");
+  process.exit(1);
+}
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// =============================================
+// 6. ROUTES (AFTER ALL MIDDLEWARE)
+// =============================================
+app.use("/cart", itemCartRoute);
+app.use("/items", itemsRoutes);
+app.use("/api", router);
+app.use("/deliveries", deliveryRoutes);
+app.use("/pro", feedbackRoutes);
+app.use(userRoutes);
+app.use("/", orderRouter);
+app.use("/api", imageSearchRoutes);
+
+// =============================================
+// 7. ANALYSIS ENDPOINTS
+// =============================================
 const analysisSchema = Joi.object({
   products: Joi.array()
     .items(
@@ -77,7 +106,6 @@ const analysisSchema = Joi.object({
   view: Joi.string().valid("quantity", "price").required(),
 });
 
-// Analysis endpoint
 app.post("/analyze", async (req, res) => {
   try {
     const { error, value } = analysisSchema.validate(req.body);
@@ -117,7 +145,7 @@ Provide:
 
     const response = await groq.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "llama3-70b-8192", // or "mixtral-8x7b-32768"
+      model: "llama3-70b-8192",
       temperature: 0.7,
       max_tokens: 500,
     });
@@ -135,15 +163,6 @@ Provide:
   }
 });
 
-// Routes
-app.use("/cart", itemCartRoute);
-app.use("/items", itemsRoutes);
-app.use("/api", router);
-app.use("/deliveries", deliveryRoutes);
-app.use("/pro", feedbackRoutes);
-app.use(userRoutes);
-app.use("/", orderRouter);
-
 app.post("/analyze/ai", async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -160,11 +179,26 @@ app.post("/analyze/ai", async (req, res) => {
   }
 });
 
-// Root
+// =============================================
+// 8. ERROR HANDLING (LAST MIDDLEWARE)
+// =============================================
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      error: "File too large. Maximum size is 50MB",
+    });
+  }
+  res.status(500).json({ success: false, error: "Server error" });
+});
+
+// =============================================
+// 9. ROOT ROUTE & SERVER START
+// =============================================
 app.get("/", (req, res) => res.send("API Running 🚀"));
 
-// Server start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log("Server is running on PORT " + PORT);
+  console.log(`Server is running on PORT ${PORT}`);
 });

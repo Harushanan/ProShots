@@ -26,14 +26,22 @@ const ItemList = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  
+  const normalizeSearchTerm = (term) => {
+    return term
+      .toLowerCase()
+      .replace(/[-\s]/g, "")
+      .trim();
+  };
+
+ 
   // Load dark mode preference from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    const newDarkMode = !savedDarkMode; // Flip it every time page loads
+    const newDarkMode = !savedDarkMode; 
     setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode); // Save the new mode
+    localStorage.setItem("darkMode", newDarkMode); 
   }, []);
-
   // Save dark mode preference
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode);
@@ -65,14 +73,16 @@ const ItemList = () => {
     return () => window.removeEventListener("storage", updateCartCount);
   }, []);
 
+  // Updated search functionality
   useEffect(() => {
-    if (searchQuery === "") {
+    if (!searchQuery) {
       setFilteredItems(items);
       return;
     }
 
+    const normalizedQuery = normalizeSearchTerm(searchQuery);
     const filtered = items.filter((item) =>
-      item.name.toLowerCase().startsWith(searchQuery.toLowerCase())
+      normalizeSearchTerm(item.name).includes(normalizedQuery)
     );
     setFilteredItems(filtered);
   }, [searchQuery, items]);
@@ -146,7 +156,7 @@ const ItemList = () => {
   const hasNoResults = searchQuery && filteredItems.length === 0;
 
   return (
-    <div className={`min-h-screen relative overflow-hidden`}>
+    <div className={`min-h-screen relative overflow-hidden bg-gray-100`}>
       {/* Animated Wave Background */}
       <div className="absolute bottom-0 left-0 right-0 overflow-hidden h-64 md:h-80 lg:h-96">
         <motion.svg
@@ -253,7 +263,7 @@ const ItemList = () => {
         {!location.pathname.includes("/client/products") && <Navbar />}
 
         {/* Cart Button */}
-        <div className="fixed right-4 top-4 md:top-6 z-50 flex gap-4">
+        <div className="fixed left-4 top-4 md:top-6 z-50 flex gap-4">
           {/* Cart Button - Only show in client view */}
           {!location.pathname.includes("/admin/product-list") && (
             <div
@@ -297,7 +307,7 @@ const ItemList = () => {
         <div className="max-w-6xl mx-auto px-3">
           <h1
             className={`text-4xl mt-8 mb-8 text-center underline font-bold ${
-              darkMode ? "text-gray" : "text-blue-900"
+              darkMode ? "text-gray-700" : "text-blue-900"
             }`}
           >
             Product List
@@ -308,6 +318,8 @@ const ItemList = () => {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             darkMode={darkMode}
+            setFilteredItems={setFilteredItems}
+            items={items}
           />
 
           {/* Item Cards Grid */}
