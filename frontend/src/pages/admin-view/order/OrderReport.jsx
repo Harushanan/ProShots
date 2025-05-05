@@ -1,5 +1,18 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { format, parseISO, getYear, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
+import {
+  format,
+  parseISO,
+  getYear,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+} from "date-fns";
 import {
   BarChart,
   Bar,
@@ -17,7 +30,8 @@ import { debounce } from "lodash";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import Navbar from "./NavBar";
-import autoTable from 'jspdf-autotable';
+import autoTable from "jspdf-autotable";
+import TextToSpeechButton from "./TextToSpeechButton";
 
 // Custom Components
 const Spinner = () => (
@@ -76,13 +90,13 @@ const ExclamationIcon = () => (
 const AnalysisResults = React.forwardRef(({ analysis, summary }, ref) => {
   if (!analysis) return null;
 
-  // Convert all $ signs to Rs in the analysis text
-  const convertedAnalysis = analysis.replace(/\$\s*(\d+)/g, 'Rs $1');
-
-  const sections = convertedAnalysis.split("\n\n").filter((section) => section.trim());
+  const convertedAnalysis = analysis.replace(/\$\s*(\d+)/g, "Rs $1");
+  const sections = convertedAnalysis
+    .split("\n\n")
+    .filter((section) => section.trim());
 
   return (
-    <div 
+    <div
       ref={ref}
       className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-lg transition-all duration-300 transform hover:scale-[1.005]"
     >
@@ -109,8 +123,9 @@ const AnalysisResults = React.forwardRef(({ analysis, summary }, ref) => {
       <div className="space-y-6">
         {sections.map((section, index) => {
           const [heading, ...content] = section.split("\n");
-          const isHeading = (text) => text.endsWith(":**") || text.endsWith(":** ");
-          
+          const isHeading = (text) =>
+            text.endsWith(":**") || text.endsWith(":** ");
+
           return (
             <div key={index} className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="font-semibold text-lg mb-2 text-indigo-700 border-b pb-1">
@@ -118,9 +133,11 @@ const AnalysisResults = React.forwardRef(({ analysis, summary }, ref) => {
               </h3>
               <div className="text-black">
                 {content.map((line, i) => (
-                  <p 
-                    key={i} 
-                    className={`mb-1 ${isHeading(line.trim()) ? 'font-medium text-gray-800' : ''}`}
+                  <p
+                    key={i}
+                    className={`mb-1 ${
+                      isHeading(line.trim()) ? "font-medium text-gray-800" : ""
+                    }`}
                   >
                     {line}
                   </p>
@@ -156,14 +173,16 @@ const StatCard = React.memo(({ label, value }) => (
 ));
 
 const SalesChart = React.forwardRef(({ data, view, onBarClick }, ref) => {
-  // Custom color based on view mode
   const barColor = view === "quantity" ? "#4CAF50" : "#6366F1";
-  
-  // Clean product names by removing "(undefined)" text
-  const cleanedData = useMemo(() => data.map(item => ({
-    ...item,
-    name: item.name.replace(/\(undefined\)/gi, '') // Remove (undefined) case-insensitive
-  })), [data]);
+
+  const cleanedData = useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        name: item.name.replace(/\(undefined\)/gi, ""),
+      })),
+    [data]
+  );
 
   const handleClick = (data, index) => {
     if (onBarClick) {
@@ -172,7 +191,10 @@ const SalesChart = React.forwardRef(({ data, view, onBarClick }, ref) => {
   };
 
   return (
-    <div ref={ref} className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
+    <div
+      ref={ref}
+      className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg"
+    >
       <h3 className="text-lg font-semibold mb-4 text-gray-700">
         {view === "quantity" ? "Units Sold" : "Revenue"} by Product
       </h3>
@@ -184,14 +206,16 @@ const SalesChart = React.forwardRef(({ data, view, onBarClick }, ref) => {
             layout="vertical"
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              type="number" 
+            <XAxis
+              type="number"
               tick={{ fontSize: 12 }}
-              tickFormatter={(value) => view === "quantity" ? value : `Rs ${value}`}
+              tickFormatter={(value) =>
+                view === "quantity" ? value : `Rs ${value}`
+              }
             />
-            <YAxis 
-              dataKey="name" 
-              type="category" 
+            <YAxis
+              dataKey="name"
+              type="category"
               width={150}
               tick={{ fontSize: 12 }}
             />
@@ -215,16 +239,14 @@ const SalesChart = React.forwardRef(({ data, view, onBarClick }, ref) => {
               onClick={handleClick}
             >
               {cleanedData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={barColor} 
-                  cursor="pointer"
-                />
+                <Cell key={`cell-${index}`} fill={barColor} cursor="pointer" />
               ))}
               <LabelList
                 dataKey={view}
                 position="right"
-                formatter={(value) => view === "quantity" ? value : `Rs ${value}`}
+                formatter={(value) =>
+                  view === "quantity" ? value : `Rs ${value}`
+                }
               />
             </Bar>
           </BarChart>
@@ -234,144 +256,153 @@ const SalesChart = React.forwardRef(({ data, view, onBarClick }, ref) => {
   );
 });
 
-const ProductTable = React.forwardRef(({ data, selectedMonth, onRowClick }, ref) => {
-  if (!data || data.length === 0) {
+const ProductTable = React.forwardRef(
+  ({ data, selectedMonth, onRowClick }, ref) => {
+    if (!data || data.length === 0) {
+      return (
+        <div
+          ref={ref}
+          className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+        >
+          <p className="text-gray-500">No data available for {selectedMonth}</p>
+        </div>
+      );
+    }
+
+    const totalQuantity = data.reduce((sum, p) => sum + p.quantity, 0);
+    const totalRevenue = data.reduce((sum, p) => sum + p.price * p.quantity, 0);
+
     return (
-      <div ref={ref} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <p className="text-gray-500">No data available for {selectedMonth}</p>
-      </div>
-    );
-  }
-
-  const totalQuantity = data.reduce((sum, p) => sum + p.quantity, 0);
-  const totalRevenue = data.reduce((sum, p) => sum + p.price * p.quantity, 0);
-
-  return (
-    <div ref={ref} className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg mt-7">
-      <h3 className="text-xl font-semibold mb-4 text-gray-800">
-        {selectedMonth} Product Details
-      </h3>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 text-left border-b border-gray-300">
-                Product
-              </th>
-              <th className="p-3 text-left border-b border-gray-300">Size</th>
-              <th className="p-3 text-left border-b border-gray-300">
-                Quantity
-              </th>
-              <th className="p-3 text-left border-b border-gray-300">
-                Unit Price
-              </th>
-              <th className="p-3 text-left border-b border-gray-300">
-                Total Value
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => (
-              <tr
-                key={index}
-                className="hover:bg-gray-50 border-b border-gray-200 transition-colors cursor-pointer"
-                onClick={() => onRowClick && onRowClick(item)}
-              >
-                <td className="p-3">{item.productName}</td>
-                <td className="p-3">{item.size}</td>
-                <td className="p-3">{item.quantity}</td>
-                <td className="p-3">Rs {item.price.toFixed(2)}</td>
-                <td className="p-3 font-medium">
-                  Rs {(item.price * item.quantity).toFixed(2)}
+      <div
+        ref={ref}
+        className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg mt-7"
+      >
+        <h3 className="text-xl font-semibold mb-4 text-gray-800">
+          {selectedMonth} Product Details
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-3 text-left border-b border-gray-300">
+                  Product
+                </th>
+                <th className="p-3 text-left border-b border-gray-300">Size</th>
+                <th className="p-3 text-left border-b border-gray-300">
+                  Quantity
+                </th>
+                <th className="p-3 text-left border-b border-gray-300">
+                  Unit Price
+                </th>
+                <th className="p-3 text-left border-b border-gray-300">
+                  Total Value
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((item, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-gray-50 border-b border-gray-200 transition-colors cursor-pointer"
+                  onClick={() => onRowClick && onRowClick(item)}
+                >
+                  <td className="p-3">{item.productName}</td>
+                  <td className="p-3">{item.size}</td>
+                  <td className="p-3">{item.quantity}</td>
+                  <td className="p-3">Rs {item.price.toFixed(2)}</td>
+                  <td className="p-3 font-medium">
+                    Rs {(item.price * item.quantity).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-gray-50 font-semibold">
+                <td className="p-3 border-t border-gray-300" colSpan="2">
+                  Totals
+                </td>
+                <td className="p-3 border-t border-gray-300">
+                  {totalQuantity}
+                </td>
+                <td className="p-3 border-t border-gray-300"></td>
+                <td className="p-3 border-t border-gray-300">
+                  Rs {totalRevenue.toFixed(2)}
                 </td>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-gray-50 font-semibold">
-              <td className="p-3 border-t border-gray-300" colSpan="2">
-                Totals
-              </td>
-              <td className="p-3 border-t border-gray-300">{totalQuantity}</td>
-              <td className="p-3 border-t border-gray-300"></td>
-              <td className="p-3 border-t border-gray-300">
-                Rs {totalRevenue.toFixed(2)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  );
-});
-
-const DailySalesChart = React.forwardRef(({ data, productName, size, onClearSelection }, ref) => {
-  if (!data || data.length === 0) {
-    return (
-      <div ref={ref} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <p className="text-gray-500">No daily sales data available</p>
+            </tfoot>
+          </table>
+        </div>
       </div>
     );
   }
+);
 
-  return (
-    <div ref={ref} className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-gray-800">
-          Daily Sales for {productName} ({size})
-        </h3>
-        <button
-          onClick={onClearSelection}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+const DailySalesChart = React.forwardRef(
+  ({ data, productName, size, onClearSelection }, ref) => {
+    if (!data || data.length === 0) {
+      return (
+        <div
+          ref={ref}
+          className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
         >
-          Clear Selection
-        </button>
-      </div>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          <p className="text-gray-500">No daily sales data available</p>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        ref={ref}
+        className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-800">
+            Daily Sales for {productName} ({size})
+          </h3>
+          <button
+            onClick={onClearSelection}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="dayName" 
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              tick={{ fontSize: 12 }}
-            />
-            <Tooltip
-              formatter={(value) => [`${value} units`, "Quantity"]}
-              contentStyle={{
-                background: "#ffffff",
-                borderRadius: "8px",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                border: "none",
-              }}
-            />
-            <Legend />
-            <Bar
-              dataKey="sales"
-              name="Daily Sales"
-              fill="#8884d8"
-              radius={[4, 4, 0, 0]}
+            Clear Selection
+          </button>
+        </div>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
             >
-              <LabelList
-                dataKey="sales"
-                position="top"
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="dayName" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                formatter={(value) => [`${value} units`, "Quantity"]}
+                contentStyle={{
+                  background: "#ffffff",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                  border: "none",
+                }}
               />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <Legend />
+              <Bar
+                dataKey="sales"
+                name="Daily Sales"
+                fill="#8884d8"
+                radius={[4, 4, 0, 0]}
+              >
+                <LabelList dataKey="sales" position="top" />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 const MonthlyProductReport = () => {
   const navigate = useNavigate();
-  // State management
   const [orders, setOrders] = useState([]);
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -390,25 +421,26 @@ const MonthlyProductReport = () => {
   const analysisCache = useRef({});
   const pdfOptionsRef = useRef();
 
-  // Refs for PDF generation
+  // Refs for PDF generation and text-to-speech
   const analysisRef = useRef(null);
   const chartRef = useRef(null);
   const dailySalesRef = useRef(null);
   const productTableRef = useRef(null);
+  const reportContentRef = useRef(null);
 
-  // Memoized fetch function with error handling
   const fetchOrders = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const response = await fetch("http://localhost:5000/orders");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      // Filter for completed orders only
-      const completedOrders = data.filter(order => order.status === "Completed");
+      const completedOrders = data.filter(
+        (order) => order.status === "Completed"
+      );
       setOrders(completedOrders);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
@@ -418,33 +450,32 @@ const MonthlyProductReport = () => {
     }
   }, []);
 
-  // Fetch orders from backend
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Process and group data by year and month
   const { groupedByYearMonth, availableYears } = useMemo(() => {
     const grouped = {};
     const years = new Set();
-    
+
     orders.forEach((order) => {
       const date = parseISO(order.orderDate);
       const year = getYear(date);
       const monthYear = format(date, "MMMM yyyy");
-      const monthOnly = format(date, "MMMM"); // Get month name only
+      const monthOnly = format(date, "MMMM");
       years.add(year);
-      
+
       if (!grouped[year]) grouped[year] = {};
-      if (!grouped[year][monthYear]) grouped[year][monthYear] = {
-        monthName: monthOnly,
-        items: []
-      };
+      if (!grouped[year][monthYear])
+        grouped[year][monthYear] = {
+          monthName: monthOnly,
+          items: [],
+        };
 
       order.items.forEach((item) => {
         const existing = grouped[year][monthYear].items.find(
-          (product) => 
-            product.productName === item.productName && 
+          (product) =>
+            product.productName === item.productName &&
             product.size === item.size
         );
 
@@ -456,7 +487,7 @@ const MonthlyProductReport = () => {
             price: item.price,
             size: item.size,
             quantity: item.quantity,
-            date: order.orderDate
+            date: order.orderDate,
           });
         }
       });
@@ -464,16 +495,15 @@ const MonthlyProductReport = () => {
 
     return {
       groupedByYearMonth: grouped,
-      availableYears: Array.from(years).sort((a, b) => b - a)
+      availableYears: Array.from(years).sort((a, b) => b - a),
     };
   }, [orders]);
 
-  // Initialize year and month
   useEffect(() => {
     if (availableYears.length > 0 && !selectedYear) {
       const newestYear = availableYears[0];
       setSelectedYear(newestYear);
-      
+
       const months = Object.keys(groupedByYearMonth[newestYear]);
       if (months.length > 0) {
         setSelectedMonth(months[0]);
@@ -481,42 +511,41 @@ const MonthlyProductReport = () => {
     }
   }, [groupedByYearMonth, availableYears, selectedYear]);
 
-  // Get available months for selected year (month names only)
   const availableMonths = useMemo(() => {
     if (!selectedYear) return [];
     return Object.entries(groupedByYearMonth[selectedYear] || {})
       .map(([monthYear, data]) => ({
         key: monthYear,
-        name: data.monthName
+        name: data.monthName,
       }))
       .sort((a, b) => {
         return new Date(b.key) - new Date(a.key);
       });
   }, [selectedYear, groupedByYearMonth]);
 
-  // Prepare chart data
   const chartData = useMemo(() => {
     if (!selectedYear || !selectedMonth) return [];
-    const monthData = groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [];
+    const monthData =
+      groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [];
     if (!monthData) return [];
-    
+
     return monthData.map((item) => ({
       name: `${item.productName} (${item.size})`,
       quantity: item.quantity,
       price: item.price * item.quantity,
       productName: item.productName,
-      size: item.size
+      size: item.size,
     }));
   }, [selectedYear, selectedMonth, groupedByYearMonth]);
 
-  // Generate daily sales data when a product is selected
   useEffect(() => {
     if (!selectedProduct || !selectedMonth || !selectedYear) return;
 
-    const monthData = groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [];
+    const monthData =
+      groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [];
     const productData = monthData.filter(
-      item => 
-        item.productName === selectedProduct.productName && 
+      (item) =>
+        item.productName === selectedProduct.productName &&
         item.size === selectedProduct.size
     );
 
@@ -525,130 +554,135 @@ const MonthlyProductReport = () => {
       return;
     }
 
-    // Get all days in the selected month
     const monthDate = parseISO(productData[0].date);
     const startDate = startOfMonth(monthDate);
     const endDate = endOfMonth(monthDate);
     const daysInMonth = eachDayOfInterval({ start: startDate, end: endDate });
 
-    // Create daily sales data
-    const dailyData = daysInMonth.map(day => {
-      const dayStr = format(day, 'yyyy-MM-dd');
+    const dailyData = daysInMonth.map((day) => {
+      const dayStr = format(day, "yyyy-MM-dd");
       const salesOnDay = productData
-        .filter(item => format(parseISO(item.date), 'yyyy-MM-dd') === dayStr)
+        .filter((item) => format(parseISO(item.date), "yyyy-MM-dd") === dayStr)
         .reduce((sum, item) => sum + item.quantity, 0);
-      
+
       return {
         date: dayStr,
         sales: salesOnDay,
-        dayName: format(day, 'EEE')
+        dayName: format(day, "EEE"),
       };
     });
 
     setDailySalesData(dailyData);
   }, [selectedProduct, selectedMonth, selectedYear, groupedByYearMonth]);
 
-  // Reset analysis when filters change
   useEffect(() => {
     setAnalysis(null);
     setSelectedProduct(null);
   }, [selectedYear, selectedMonth, view]);
 
-  // Request throttling
   useEffect(() => {
     const timer = setInterval(() => {
       setRemainingRequests((prev) => Math.min(prev + 1, 30));
-    }, 2000); // Replenish 1 request every 2 seconds
+    }, 2000);
 
     return () => clearInterval(timer);
   }, []);
 
-  // Close PDF options dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (pdfOptionsRef.current && !pdfOptionsRef.current.contains(event.target)) {
+      if (
+        pdfOptionsRef.current &&
+        !pdfOptionsRef.current.contains(event.target)
+      ) {
         setShowPDFOptions(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounced AI Analysis function with rate limiting
-  const analyzeData = useCallback(debounce(async () => {
-    const now = Date.now();
-    const cacheKey = `${selectedYear}-${selectedMonth}-${view}`;
+  const analyzeData = useCallback(
+    debounce(async () => {
+      const now = Date.now();
+      const cacheKey = `${selectedYear}-${selectedMonth}-${view}`;
 
-    // Check cache first
-    if (analysisCache.current[cacheKey]) {
-      setAnalysis(analysisCache.current[cacheKey].analysis);
-      setSummary(analysisCache.current[cacheKey].summary);
-      return;
-    }
-
-    // Rate limiting
-    if (remainingRequests <= 0) {
-      setError(
-        `Rate limit exceeded (30 requests/minute). Try again in ${Math.ceil(
-          (60000 - (now - lastRequestTime)) / 1000
-        )} seconds.`
-      );
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setError(null);
-    setRemainingRequests((prev) => prev - 1);
-    setLastRequestTime(now);
-
-    try {
-      const response = await fetch("http://localhost:5000/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          products: groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [],
-          selectedMonth,
-          view,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
+      if (analysisCache.current[cacheKey]) {
+        setAnalysis(analysisCache.current[cacheKey].analysis);
+        setSummary(analysisCache.current[cacheKey].summary);
+        return;
       }
 
-      const data = await response.json();
-      setAnalysis(data.analysis);
-      setSummary(data.summary);
+      if (remainingRequests <= 0) {
+        setError(
+          `Rate limit exceeded (30 requests/minute). Try again in ${Math.ceil(
+            (60000 - (now - lastRequestTime)) / 1000
+          )} seconds.`
+        );
+        return;
+      }
 
-      // Cache the response
-      analysisCache.current[cacheKey] = {
-        analysis: data.analysis,
-        summary: data.summary,
-      };
-    } catch (err) {
-      console.error("Analysis failed:", err);
-      setError(
-        err.message.includes("429")
-          ? "Rate limit exceeded (30 requests/minute). Please wait."
-          : err.message
-      );
-      setRemainingRequests((prev) => prev + 1); // Refund the request
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, 300), [selectedYear, selectedMonth, view, remainingRequests, lastRequestTime, groupedByYearMonth]);
+      setIsAnalyzing(true);
+      setError(null);
+      setRemainingRequests((prev) => prev - 1);
+      setLastRequestTime(now);
+
+      try {
+        const response = await fetch("http://localhost:5000/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            products:
+              groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [],
+            selectedMonth,
+            view,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+        setAnalysis(data.analysis);
+        setSummary(data.summary);
+
+        analysisCache.current[cacheKey] = {
+          analysis: data.analysis,
+          summary: data.summary,
+        };
+      } catch (err) {
+        console.error("Analysis failed:", err);
+        setError(
+          err.message.includes("429")
+            ? "Rate limit exceeded (30 requests/minute). Please wait."
+            : err.message
+        );
+        setRemainingRequests((prev) => prev + 1);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }, 300),
+    [
+      selectedYear,
+      selectedMonth,
+      view,
+      remainingRequests,
+      lastRequestTime,
+      groupedByYearMonth,
+    ]
+  );
 
   const handleBarClick = (data, index) => {
     setSelectedProduct({
       productName: data.productName,
-      size: data.size
+      size: data.size,
     });
   };
 
   const handleRowClick = (item) => {
     setSelectedProduct({
       productName: item.productName,
-      size: item.size
+      size: item.size,
     });
   };
 
@@ -656,180 +690,177 @@ const MonthlyProductReport = () => {
     setSelectedProduct(null);
   };
 
-  // PDF Generation Functions
   const generatePDF = async () => {
-  setIsGeneratingPDF(true);
-  try {
-    const doc = new jsPDF('p', 'pt', 'a4');
-    const margin = 40;
-    let position = margin;
-    const pageHeight = doc.internal.pageSize.height;
+    setIsGeneratingPDF(true);
+    try {
+      const doc = new jsPDF("p", "pt", "a4");
+      const margin = 40;
+      let position = margin;
+      const pageHeight = doc.internal.pageSize.height;
 
-    // Add title
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-    doc.text(`Monthly Product Report - ${selectedMonth}`, margin, position);
-    position += 30;
+      doc.setFontSize(20);
+      doc.setTextColor(40);
+      doc.text(`Monthly Product Report - ${selectedMonth}`, margin, position);
+      position += 30;
 
-    // Add metadata
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, position);
-    position += 40;
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text(
+        `Generated on ${new Date().toLocaleDateString()}`,
+        margin,
+        position
+      );
+      position += 40;
 
-    // Function to add section to PDF with page break handling
-    const addSectionToPDF = async (element, title) => {
-      if (!element) return position;
-      
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true
+      const addSectionToPDF = async (element, title) => {
+        if (!element) return position;
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: true,
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        const imgWidth = doc.internal.pageSize.getWidth() - 2 * margin;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        if (position + imgHeight > pageHeight - margin) {
+          doc.addPage();
+          position = margin;
+        }
+
+        doc.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+        return position + imgHeight + 20;
+      };
+
+      position = await addSectionToPDF(analysisRef.current, "AI Analysis");
+      position = await addSectionToPDF(chartRef.current, "Product Performance");
+
+      if (selectedProduct && dailySalesRef.current) {
+        position = await addSectionToPDF(dailySalesRef.current, "Daily Sales");
+      }
+
+      if (productTableRef.current) {
+        await addSectionToPDF(productTableRef.current, "Product Details");
+      }
+
+      doc.save(`report-${selectedMonth.replace(/\s+/g, "-")}.pdf`);
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const generateDataPDF = useCallback(() => {
+    try {
+      const doc = new jsPDF();
+
+      doc.setProperties({
+        title: `Product Report - ${selectedMonth}`,
+        subject: "Monthly Product Analysis",
+        author: "Your App Name",
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = doc.internal.pageSize.getWidth() - 2 * margin;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`Monthly Product Report - ${selectedMonth}`, 105, 20, {
+        align: "center",
+      });
 
-      // Check if we need a new page
-      if (position + imgHeight > pageHeight - margin) {
-        doc.addPage();
-        position = margin;
-      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 30, {
+        align: "center",
+      });
 
-      doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-      return position + imgHeight + 20;
-    };
+      let yPos = 40;
 
-    // Add all sections
-    position = await addSectionToPDF(analysisRef.current, "AI Analysis");
-    position = await addSectionToPDF(chartRef.current, "Product Performance");
-    
-    if (selectedProduct && dailySalesRef.current) {
-      position = await addSectionToPDF(dailySalesRef.current, "Daily Sales");
-    }
-
-    if (productTableRef.current) {
-      await addSectionToPDF(productTableRef.current, "Product Details");
-    }
-
-    // Save the PDF
-    doc.save(`report-${selectedMonth.replace(/\s+/g, '-')}.pdf`);
-  } catch (error) {
-    console.error('PDF generation error:', error);
-    alert('Failed to generate PDF. Please try again.');
-  } finally {
-    setIsGeneratingPDF(false);
-  }
-};
-
- const generateDataPDF = useCallback(() => {
-  try {
-    // Initialize PDF
-    const doc = new jsPDF();
-    
-    // Set document properties
-    doc.setProperties({
-      title: `Product Report - ${selectedMonth}`,
-      subject: 'Monthly Product Analysis',
-      author: 'Your App Name',
-    });
-
-    // Add title
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(40, 40, 40);
-    doc.text(`Monthly Product Report - ${selectedMonth}`, 105, 20, { align: 'center' });
-    
-    // Add generation date
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
-
-    let yPos = 40;
-
-    // 1. Add Product Performance Table
-    doc.setFontSize(14);
-    doc.text('Product Performance', 14, yPos);
-    yPos += 10;
-
-    const performanceData = chartData.map(item => [
-      item.name.length > 25 ? `${item.name.substring(0, 22)}...` : item.name,
-      view === 'quantity' ? item.quantity : `Rs ${item.price.toFixed(2)}`
-    ]);
-
-    // Use autoTable directly (not doc.autoTable)
-    autoTable(doc, {
-      startY: yPos,
-      head: [['Product', view === 'quantity' ? 'Units Sold' : 'Revenue (Rs)']],
-      body: performanceData,
-      styles: { 
-        fontSize: 9,
-        cellPadding: 3,
-        overflow: 'linebreak'
-      },
-      columnStyles: {
-        0: { cellWidth: 120 },
-        1: { cellWidth: 'auto', halign: 'right' }
-      },
-      headStyles: { 
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: 'bold'
-      }
-    });
-
-    yPos = doc.lastAutoTable.finalY + 15;
-
-    // 2. Add Detailed Product Data
-    const monthData = groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [];
-    if (monthData.length > 0) {
       doc.setFontSize(14);
-      doc.text('Detailed Product Data', 14, yPos);
+      doc.text("Product Performance", 14, yPos);
       yPos += 10;
 
-      const productData = monthData.map(item => [
-        item.productName.length > 20 ? `${item.productName.substring(0, 17)}...` : item.productName,
-        item.size || '-',
-        item.quantity,
-        `Rs ${item.price.toFixed(2)}`,
-        `Rs ${(item.price * item.quantity).toFixed(2)}`
+      const performanceData = chartData.map((item) => [
+        item.name.length > 25 ? `${item.name.substring(0, 22)}...` : item.name,
+        view === "quantity" ? item.quantity : `Rs ${item.price.toFixed(2)}`,
       ]);
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Product', 'Size', 'Qty', 'Unit Price', 'Total']],
-        body: productData,
-        styles: { 
-          fontSize: 8,
-          cellPadding: 2,
-          overflow: 'linebreak'
+        head: [
+          ["Product", view === "quantity" ? "Units Sold" : "Revenue (Rs)"],
+        ],
+        body: performanceData,
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          overflow: "linebreak",
         },
         columnStyles: {
-          0: { cellWidth: 70 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 20, halign: 'right' },
-          3: { cellWidth: 30, halign: 'right' },
-          4: { cellWidth: 30, halign: 'right' }
+          0: { cellWidth: 120 },
+          1: { cellWidth: "auto", halign: "right" },
         },
-        headStyles: { 
-          fillColor: [128, 0, 128],
+        headStyles: {
+          fillColor: [41, 128, 185],
           textColor: 255,
-          fontStyle: 'bold'
-        }
+          fontStyle: "bold",
+        },
       });
+
+      yPos = doc.lastAutoTable.finalY + 15;
+
+      const monthData =
+        groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || [];
+      if (monthData.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Detailed Product Data", 14, yPos);
+        yPos += 10;
+
+        const productData = monthData.map((item) => [
+          item.productName.length > 20
+            ? `${item.productName.substring(0, 17)}...`
+            : item.productName,
+          item.size || "-",
+          item.quantity,
+          `Rs ${item.price.toFixed(2)}`,
+          `Rs ${(item.price * item.quantity).toFixed(2)}`,
+        ]);
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [["Product", "Size", "Qty", "Unit Price", "Total"]],
+          body: productData,
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: "linebreak",
+          },
+          columnStyles: {
+            0: { cellWidth: 70 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 20, halign: "right" },
+            3: { cellWidth: 30, halign: "right" },
+            4: { cellWidth: 30, halign: "right" },
+          },
+          headStyles: {
+            fillColor: [128, 0, 128],
+            textColor: 255,
+            fontStyle: "bold",
+          },
+        });
+      }
+
+      doc.save(`product-report-${selectedMonth.replace(/\s+/g, "-")}.pdf`);
+    } catch (error) {
+      console.error("PDF Generation Error:", error);
+      alert(`Failed to generate PDF: ${error.message}`);
     }
-
-    // Save PDF
-    doc.save(`product-report-${selectedMonth.replace(/\s+/g, '-')}.pdf`);
-
-  } catch (error) {
-    console.error('PDF Generation Error:', error);
-    alert(`Failed to generate PDF: ${error.message}`);
-  }
-}, [chartData, groupedByYearMonth, selectedMonth, selectedYear, view]);
+  }, [chartData, groupedByYearMonth, selectedMonth, selectedYear, view]);
 
   if (isLoading) {
     return (
@@ -867,19 +898,19 @@ const MonthlyProductReport = () => {
       <Navbar />
       <div className="flex justify-center gap-4 mb-6 mt-4">
         <button
-          onClick={() => navigate('/admin/OrderReport')}
+          onClick={() => navigate("/admin/OrderReport")}
           className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors"
         >
           Monthly Report
         </button>
         <button
-          onClick={() => navigate('/admin/compareOrderReport')}
+          onClick={() => navigate("/admin/compareOrderReport")}
           className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors"
         >
           Compare Report
         </button>
       </div>
-      
+
       <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
         <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
           Monthly Product Analytics
@@ -937,103 +968,109 @@ const MonthlyProductReport = () => {
             <span>Quantity View</span>
           </button>
 
-           <div className="relative" ref={pdfOptionsRef}>
-    <button
-      onClick={() => setShowPDFOptions(!showPDFOptions)}
-      disabled={isGeneratingPDF}
-      className={`flex items-center gap-2 px-6 py-3 ${
-        isGeneratingPDF ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'
-      } text-white rounded-lg transition-all shadow-md hover:shadow-lg`}
-    >
-      {isGeneratingPDF ? (
-        <>
-          <Spinner />
-          <span>Generating PDF...</span>
-        </>
-      ) : (
-        <>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Download PDF
-        </>
-      )}
-    </button>
+          <div className="relative" ref={pdfOptionsRef}>
+            <button
+              onClick={() => setShowPDFOptions(!showPDFOptions)}
+              disabled={isGeneratingPDF}
+              className={`flex items-center gap-2 px-6 py-3 ${
+                isGeneratingPDF
+                  ? "bg-gray-400"
+                  : "bg-purple-600 hover:bg-purple-700"
+              } text-white rounded-lg transition-all shadow-md hover:shadow-lg`}
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <Spinner />
+                  <span>Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Download PDF
+                </>
+              )}
+            </button>
 
-    {showPDFOptions && !isGeneratingPDF && (
-      <div className="absolute z-10 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
-        <div className="py-1">
+            {showPDFOptions && !isGeneratingPDF && (
+              <div className="absolute z-10 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      generatePDF();
+                      setShowPDFOptions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Full Report (Visual)
+                  </button>
+                  <button
+                    onClick={() => {
+                      generateDataPDF();
+                      setShowPDFOptions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Data-Only Report
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
-            onClick={() => {
-              generatePDF();
-              setShowPDFOptions(false);
-            }}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setView("price")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all ${
+              view === "price"
+                ? "bg-indigo-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
           >
-            Full Report (Visual)
+            <span>Revenue View</span>
           </button>
+
           <button
-            onClick={() => {
-              generateDataPDF();
-              setShowPDFOptions(false);
-            }}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={analyzeData}
+            disabled={isAnalyzing || remainingRequests <= 0 || !selectedMonth}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
           >
-            Data-Only Report
+            {isAnalyzing ? (
+              <>
+                <Spinner />
+                <span className="ml-2">Analyzing...</span>
+              </>
+            ) : (
+              <>
+                <div className="relative">
+                  <LightningIcon />
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+                    AI
+                  </span>
+                </div>
+                <span className="ml-2">Get AI Insights</span>
+                <span className="ml-2 text-xs bg-white text-blue-600 px-2 py-1 rounded-full">
+                  {remainingRequests}/30
+                </span>
+              </>
+            )}
           </button>
+          {/* Text-to-Speech Button - Placed at the bottom */}
+          {analysis && (
+            <div className="mt-4 flex justify-center">
+              <TextToSpeechButton contentRef={reportContentRef} />
+            </div>
+          )}
         </div>
-      </div>
-    )}
-  </div>
-
-  {/* Revenue View Button */}
-  <button
-    onClick={() => setView("price")}
-    className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all ${
-      view === "price"
-        ? "bg-indigo-600 text-white shadow-md"
-        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-    }`}
-  >
-    <span>Revenue View</span>
-  </button>
-
-  {/* AI Insights Button */}
-  <button
-    onClick={analyzeData}
-    disabled={isAnalyzing || remainingRequests <= 0 || !selectedMonth}
-    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-  >
-    {isAnalyzing ? (
-      <>
-        <Spinner />
-        <span className="ml-2">Analyzing...</span>
-      </>
-    ) : (
-      <>
-        <div className="relative">
-          <LightningIcon />
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
-            AI
-          </span>
-        </div>
-        <span className="ml-2">Get AI Insights</span>
-        <span className="ml-2 text-xs bg-white text-blue-600 px-2 py-1 rounded-full">
-          {remainingRequests}/30
-        </span>
-      </>
-    )}
-  </button>
-</div>
 
         {error && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg">
@@ -1046,71 +1083,77 @@ const MonthlyProductReport = () => {
         )}
       </div>
 
-      
-<AnalysisResults ref={analysisRef} analysis={analysis} summary={summary} />
-<SalesChart ref={chartRef} data={chartData} view={view} onBarClick={handleBarClick} />
-      {selectedProduct && (
-        <div className="mb-8 bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">
-              Daily Sales for {selectedProduct.productName} ({selectedProduct.size})
-            </h3>
-            <button
-              onClick={handleClearSelection}
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-            >
-              Clear Selection
-            </button>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={dailySalesData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="dayName" 
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip
-                  formatter={(value) => [`${value} units`, "Quantity"]}
-                  contentStyle={{
-                    background: "#ffffff",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                    border: "none",
-                  }}
-                />
-                <Legend />
-                <Bar
-                  dataKey="sales"
-                  name="Daily Sales"
-                  fill="#8884d8"
-                  radius={[4, 4, 0, 0]}
-                >
-                  <LabelList
-                    dataKey="sales"
-                    position="top"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+      <div ref={reportContentRef}>
+        <AnalysisResults
+          ref={analysisRef}
+          analysis={analysis}
+          summary={summary}
+        />
+        <SalesChart
+          ref={chartRef}
+          data={chartData}
+          view={view}
+          onBarClick={handleBarClick}
+        />
 
-      {selectedMonth && (
-  <ProductTable
-    ref={productTableRef}
-    data={groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || []}
-    selectedMonth={selectedMonth}
-    onRowClick={handleRowClick}
-  />
-)}
+        {selectedProduct && (
+          <div className="mb-8 bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-800">
+                Daily Sales for {selectedProduct.productName} (
+                {selectedProduct.size})
+              </h3>
+              <button
+                onClick={handleClearSelection}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              >
+                Clear Selection
+              </button>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dailySalesData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="dayName" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value) => [`${value} units`, "Quantity"]}
+                    contentStyle={{
+                      background: "#ffffff",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                      border: "none",
+                    }}
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="sales"
+                    name="Daily Sales"
+                    fill="#8884d8"
+                    radius={[4, 4, 0, 0]}
+                  >
+                    <LabelList dataKey="sales" position="top" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {selectedMonth && (
+          <ProductTable
+            ref={productTableRef}
+            data={
+              groupedByYearMonth[selectedYear]?.[selectedMonth]?.items || []
+            }
+            selectedMonth={selectedMonth}
+            onRowClick={handleRowClick}
+          />
+        )}
+      </div>
     </div>
   );
 };
