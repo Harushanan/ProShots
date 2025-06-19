@@ -1,0 +1,95 @@
+/* Custom toast styles */
+/* .Toastify__toast-container {
+  background: white !important;
+} */
+/* 
+.Toastify__toast {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.custom-toast {
+  background: white !important;
+  box-shadow: none !important;
+} */
+
+.cardShape {
+  position: relative; /* Needed for pseudo-elements to align correctly */
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 0.25em;
+  z-index: 1;
+}
+
+/* Scrollbar Hide Utility (if Tailwind plugin not available) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+@property --angle{
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.cardShape::after,
+.cardShape::before {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-image: conic-gradient(from var(--angle), transparent 70%, blue);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  padding: 3px;
+  border-radius: 10px;
+  animation: 6s spin linear infinite;
+}
+
+.cardShape::before{
+  filter: blur(1.5rem);
+  opacity: 0.5;
+  }
+
+  @keyframes spin{
+  from{
+  --angle: 0deg;
+  }
+  to{
+  --angle: 360deg;
+  }
+}
+
+@keyframes spinnerMine {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* You can add this in App.css or a global stylesheet if needed */
+.react-calendar__tile.event-day {
+  background-color: #dbeafe; /* Soft blue */
+  border-radius: 0.5rem;
+  font-weight: 600;
+  color: #1e3a8a; /* Text color */
+}
+
+.react-calendar__tile.event-day:hover {
+  background-color: #93c5fd;
+  color: white;
+}
+ 

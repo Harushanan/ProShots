@@ -1,0 +1,80 @@
+import GalleryPage from '@/components/customer-view/GalleryPage/GalleryPage';
+import AboutStudio from '@/components/customer-view/home/AboutStudio';
+import BookingForm from '@/components/customer-view/home/BookingForm';
+import OldEvents from '@/components/customer-view/home/OldEvents';
+import Packages from '@/components/customer-view/home/Packages';
+import SlideBar from '@/components/customer-view/home/SlideBar';
+import React from 'react';
+
+const Home = () => {
+    return (
+        <div className="bg-gray-50">
+            {/* Hero Section with Slider */}
+            <div className="relative w-full h-[500px] md:h-[700px] overflow-hidden">
+                <SlideBar />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <h1 className="text-4xl md:text-6xl font-bold text-white text-center drop-shadow-lg">
+                        ProShots Photography
+                    </h1>
+                </div>
+            </div>
+
+            {/* About Studio Section */}
+            <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <AboutStudio />
+            </div>
+
+            {/* Booking Section */}
+            <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+                <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12">
+                    <div 
+                        className="w-full lg:w-1/2 h-80 md:h-96 bg-cover bg-center rounded-xl shadow-xl"
+                        style={{ backgroundImage: "url('@/assets/bookImg.jpg')" }}
+                    />
+                    
+                    <div className="w-full lg:w-1/2 max-w-2xl space-y-6">
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center lg:text-left">
+                            📸 Capture Moments, Create Memories!
+                        </h1>
+                        <p className="text-lg text-gray-600 leading-relaxed text-center lg:text-left">
+                            Every smile, every laugh, every precious moment—frozen in time with stunning photography! 
+                            Whether it's a Wedding, engagement, birthday, or special event, we bring your memories 
+                            to life with breathtaking images.
+                        </p>
+                        <p className="text-lg text-gray-600 font-semibold text-center lg:text-left">
+                            📅 Book your session today and let's create magic together!  
+                        </p>
+                        <p className="text-red-600 font-bold text-xl text-center lg:text-left animate-pulse">
+                            ✨ Limited slots available—reserve now! ✨
+                        </p>
+
+                        <div className="mt-8">
+                            <BookingForm />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Recent Events Section */}
+            <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-100">
+                <div className="max-w-7xl mx-auto">
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-gray-800 text-center mb-12 uppercase tracking-tight">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                            ✨ Recent Events ✨
+                        </span>
+                    </h1>
+                    <OldEvents />
+                </div>
+            </section>
+
+            {/* Packages Section */}
+            <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+                <div className="max-w-7xl mx-auto">
+                    <Packages />
+                </div>
+            </section>
+        </div>
+    );
+}
+
+export default Home;

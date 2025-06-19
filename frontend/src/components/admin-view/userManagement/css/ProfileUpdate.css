@@ -1,0 +1,232 @@
+/* ProfileUpdate.css */
+
+.profile-update-container {
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.profile-update-form-container {
+  max-width: 600px;
+  margin: auto;
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease-in-out;
+}
+
+.profile-update-back-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  font-size: 16px;
+  background: linear-gradient(to right, #43e97b, #38f9d7);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profile-update-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.profile-update-title {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #222;
+}
+
+.profile-update-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-update-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #444;
+}
+
+.profile-update-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.profile-update-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.profile-update-email-display {
+  padding: 12px;
+  background-color: #f5f7fa;
+  border-radius: 10px;
+  color: #888;
+  margin-bottom: 10px;
+  font-size: 15px;
+  user-select: none;
+}
+
+.profile-update-alert {
+  color: crimson;
+  font-size: 14px;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
+
+/* Profile Image Section */
+.profile-image-section {
+  margin-bottom: 25px;
+}
+
+.profile-image-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-image-preview {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #667eea;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.profile-image-preview:hover {
+  transform: scale(1.05);
+}
+
+.profile-image-placeholder {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed #ccc;
+  cursor: pointer;
+}
+
+.profile-image-placeholder span {
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+}
+
+.change-image-btn {
+  padding: 8px 16px;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.change-image-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.profile-update-file-input {
+  display: none;
+}
+
+.file-input-label {
+  padding: 8px 16px;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.file-input-label:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-image-btn {
+  padding: 8px 16px;
+  background: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cancel-image-btn:hover {
+  background: #e0e0e0;
+}
+
+.profile-update-submit-btn {
+  margin-top: 10px;
+  padding: 14px;
+  width: 100%;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+.profile-update-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+}
+
+.profile-update-submit-btn.disabled {
+  background: #ccc;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-update-success {
+  color: green;
+  margin-top: 20px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.profile-update-error {
+  color: crimson;
+  margin-top: 20px;
+  font-weight: 500;
+  text-align: center;
+}
