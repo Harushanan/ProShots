@@ -9,22 +9,17 @@ This system supports **event photography booking**, **custom product orders** (m
 
 ## 🚀 Features
 
-### 🔹 Customer
-- Book event photography (wedding, birthday, etc.)
-- Upload photos for custom products
-- Track order status
-- View booking history
+### 🔹 Customer Features
+- 📅 Book event photography (e.g., wedding, birthday, graduation)
+- 🖼️ Upload photos for custom products (mugs, t-shirts, frames)
+- 🚚 Track product order and delivery status
+- 🧾 View booking and order history
 
-### 🔹 Photographer
-- View assigned bookings
-- Upload completed work
-- Update booking progress
-
-### 🔹 Admin (Owner)
-- Manage all bookings and customer orders
-- View and update inventory (t-shirts, mugs, banners)
-- Add/edit/delete products and schedules
-- View system statistics
+### 🔹 Admin (Owner) Features
+- 📋 Manage all bookings and customer orders
+- 📦 View and update inventory (t-shirts, mugs, banners)
+- 🛠️ Add / Edit / Delete products and event schedules
+- 📊 View system stats and user activity
 
 ---
 
